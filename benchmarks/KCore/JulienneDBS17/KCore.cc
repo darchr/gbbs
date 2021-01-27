@@ -40,6 +40,7 @@ template <class Graph>
 double KCore_runner(Graph& G, commandLine P) {
   size_t num_buckets = P.getOptionLongValue("-nb", 16);
   bool fa = P.getOption("-fa");
+  std::string stat_file = P.getOptionValue("-statFile", "");
   std::cout << "### Application: KCore" << std::endl;
   std::cout << "### Graph: " << P.getArgument(0) << std::endl;
   std::cout << "### Threads: " << num_workers() << std::endl;
@@ -60,6 +61,14 @@ double KCore_runner(Graph& G, commandLine P) {
   double tt = t.stop();
 
   std::cout << "### Running Time: " << tt << std::endl;
+  if(stat_file != "") {
+      std::cout << "### Stat file: " << stat_file << std::endl;
+      std::cout << "### Saving time to: " << stat_file << std::endl;
+      std::ofstream my_file;
+      my_file.open(stat_file);
+      my_file << tt;
+      my_file.close();
+  }
 
   return tt;
 }

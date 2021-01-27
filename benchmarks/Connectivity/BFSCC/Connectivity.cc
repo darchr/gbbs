@@ -38,6 +38,7 @@ namespace gbbs {
 
 template <class Graph>
 double CC_runner(Graph& G, commandLine P) {
+  std::string stat_file = P.getOptionValue("-statFile", "");
   std::cout << "### Application: CC (Connectivity)" << std::endl;
   std::cout << "### Graph: " << P.getArgument(0) << std::endl;
   std::cout << "### Threads: " << num_workers() << std::endl;
@@ -50,6 +51,14 @@ double CC_runner(Graph& G, commandLine P) {
   auto components = bfs_cc::CC(G);
   double tt = t.stop();
   std::cout << "### Running Time: " << tt << std::endl;
+  if(stat_file != "") {
+      std::cout << "### Stat file: " << stat_file << std::endl;
+      std::cout << "### Saving time to: " << stat_file << std::endl;
+      std::ofstream my_file;
+      my_file.open(stat_file);
+      my_file << tt;
+      my_file.close();
+  }
 
   return tt;
 }
