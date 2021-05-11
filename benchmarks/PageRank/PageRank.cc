@@ -35,33 +35,46 @@
 
 namespace gbbs {
 
-template <class Graph>
-double PageRank_runner(Graph& G, commandLine P) {
-  std::cout << "### Application: PageRank" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: -eps = " << P.getOptionDoubleValue("-eps", 0.000001) << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+template <class Graph> double PageRank_runner(Graph &G, commandLine P) {
+    std::string stat_file = P.getOptionValue("-statFile", "");
+    std::cout << "### Application: PageRank" << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: -eps = "
+              << P.getOptionDoubleValue("-eps", 0.000001) << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  timer t; t.start();
-  double eps = P.getOptionDoubleValue("-eps", 0.000001);
-  double local_eps = P.getOptionDoubleValue("-leps", 0.01);
-  size_t iters = P.getOptionLongValue("-iters", 100);
-  if (P.getOptionValue("-em")) {
-    PageRank_edgeMap(G, eps, iters);
-  } else if (P.getOptionValue("-delta")) {
-    delta::PageRankDelta(G, eps, local_eps, iters);
-  } else {
-    PageRank(G, eps, iters);
-  }
-  double tt = t.stop();
+    timer t;
+    t.start();
+    double eps = P.getOptionDoubleValue("-eps", 0.000001);
+    double local_eps = P.getOptionDoubleValue("-leps", 0.01);
+    size_t iters = P.getOptionLongValue("-iters", 100);
+    if (P.getOptionValue("-em")) {
+#ifdef ACCESS_OBSERVER
+        access_observer.set_timer(&t);
+#endif
+        PageRank_edgeMap(G, eps, iters);
+    } else if (P.getOptionValue("-delta")) {
+        delta::PageRankDelta(G, eps, local_eps, iters);
+    } else {
+        PageRank(G, eps, iters);
+    }
+    double tt = t.stop();
 
-  std::cout << "### Running Time: " << tt << std::endl;
-  return tt;
+    std::cout << "### Running Time: " << tt << std::endl;
+    if (stat_file != "") {
+        std::cout << "### Stat file: " << stat_file << std::endl;
+        std::cout << "### Saving time to: " << stat_file << std::endl;
+        std::ofstream my_file;
+        my_file.open(stat_file);
+        my_file << tt;
+        my_file.close();
+    }
+    return tt;
 }
 
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_main(gbbs::PageRank_runner, false);

@@ -23,67 +23,161 @@
 
 #pragma once
 
-#include "gbbs/gbbs.h"
 #include "benchmarks/Connectivity/common.h"
+#include "gbbs/gbbs.h"
 
 namespace gbbs {
+
+#ifdef ACCESS_OBSERVER
+    struct observer access_observer("twitter-cc.txt");
+    std::stringstream annotation;
+#endif
+
 namespace bfs_cc {
 
-template <class W>
-struct BFS_ComponentLabel_F {
-  parent* Parents;
-  uintE src;
-  BFS_ComponentLabel_F(parent* _Parents, uintE src) : Parents(_Parents), src(src) {}
-  inline bool update(const uintE& s, const uintE& d, const W& w) {
-    if (Parents[d] != src) {
-      Parents[d] = src;
-      return 1;
-    } else {
-      return 0;
+template <class W> struct BFS_ComponentLabel_F {
+    parent *Parents;
+    uintE src;
+    BFS_ComponentLabel_F(parent *_Parents, uintE src)
+        : Parents(_Parents), src(src) {}
+    inline bool update(const uintE &s, const uintE &d, const W &w) {
+        if (Parents[d] != src) {
+            Parents[d] = src;
+            return 1;
+        } else {
+            return 0;
+        }
     }
-  }
-  inline bool updateAtomic(const uintE& s, const uintE& d, const W& w) {
-    return (pbbs::atomic_compare_and_swap(&Parents[d], static_cast<parent>(UINT_E_MAX), static_cast<parent>(src)));
-  }
-  inline bool cond(const uintE& d) { return (Parents[d] == UINT_E_MAX); }
+    inline bool updateAtomic(const uintE &s, const uintE &d, const W &w) {
+        return (pbbs::atomic_compare_and_swap(&Parents[d],
+                                              static_cast<parent>(UINT_E_MAX),
+                                              static_cast<parent>(src)));
+    }
+    inline bool cond(const uintE &d) { return (Parents[d] == UINT_E_MAX); }
 };
 
 /* Returns a mapping from either i --> i, if i is not reached by the BFS, or
  * i --> src, if i is reachable from src in the BFS */
 template <class Graph>
-void BFS_ComponentLabel(Graph& G, uintE src, pbbs::sequence<parent>& parents) {
-  using W = typename Graph::weight_type;
-  if (G.get_vertex(src).out_degree() > 0) {
-    vertexSubset Frontier(G.n, src);
-    size_t reachable = 0; size_t rounds = 0;
-    parents[src] = src;
-    while (!Frontier.isEmpty()) {
-      reachable += Frontier.size();
-      vertexSubset output =
-          edgeMap(G, Frontier, BFS_ComponentLabel_F<W>(parents.begin(), src), -1, sparse_blocked | dense_parallel);
-      if (output.size() > 0) {
-        std::cout << "output.size = " << output.size() << std::endl;
-      }
-      Frontier.del();
-      Frontier = output;
-      rounds++;
+void BFS_ComponentLabel(Graph &G, uintE src, pbbs::sequence<parent> &parents) {
+    using W = typename Graph::weight_type;
+    if (G.get_vertex(src).out_degree() > 0) {
+        vertexSubset Frontier(G.n, src);
+        size_t reachable = 0;
+        size_t rounds = 0;
+        parents[src] = src;
+        while (!Frontier.isEmpty()) {
+            reachable += Frontier.size();
+#ifdef ACCESS_OBSERVER
+            annotation << "BEGIN: edgeMap() Init"
+                       << ",SparseAddress="
+                       << Frontier.s
+                       << ",SparseSize="
+                       << (sizeof(Frontier.s[0]) * Frontier.size())
+                       << ",DenseAddress="
+                       << Frontier.d
+                       << ",DenseSize="
+                       << Frontier.numVertices()
+                       << ",CurrentlyDense="
+                       << (Frontier.dense() ? "True" : "False");
+            access_observer.write(annotation.str());
+            std::stringstream().swap(annotation);
+#endif
+            vertexSubset output = edgeMap(
+                G, Frontier, BFS_ComponentLabel_F<W>(parents.begin(), src), -1,
+                sparse_blocked | dense_parallel);
+            if (output.size() > 0) {
+                std::cout << "output.size = " << output.size() << std::endl;
+            }
+            Frontier.del();
+            Frontier = output;
+            rounds++;
+        }
+        Frontier.del();
     }
-    Frontier.del();
-  }
 }
 
-
-template <class Graph>
-inline sequence<parent> CC(Graph& G) {
-  size_t n = G.n;
-  auto parents = pbbs::sequence<parent>(n, UINT_E_MAX);
-  for (size_t i=0; i<n; i++) {
-    if (parents[i] == UINT_E_MAX) {
-      BFS_ComponentLabel(G, i, parents);
+template <template <class W> class vertex, class W>
+inline sequence<uintE> CC(symmetric_graph<vertex, W> &G) {
+#ifdef ACCESS_OBSERVER
+        annotation << "BEGIN: CC() Init,GraphAddress="
+                   << &G
+                   << ",GraphSize="
+                   << sizeof(G)
+                   << ",VertexArrayAddress="
+                   << G.v_data
+                   << ",VertexArraySize="
+                   << (sizeof(G.v_data[0]) * G.num_vertices())
+                   << ",EdgeArrayAddress="
+                   << (int*)&(G.e0[0])
+                   << ",EdgeArraySize="
+                   << (sizeof(G.e0[0]) * G.num_edges());
+        access_observer.write(
+            annotation.str()
+        );
+        std::stringstream().swap(annotation);
+#endif
+    size_t n = G.n;
+    auto parents = pbbs::sequence<parent>(n, UINT_E_MAX);
+    for (size_t i = 0; i < n; i++) {
+        if (parents[i] == UINT_E_MAX) {
+#ifdef ACCESS_OBSERVER
+        annotation << "BEGIN: BFS_ComponentLabel() Init";
+        access_observer.write(annotation.str());
+        std::stringstream().swap(annotation);
+#endif
+            BFS_ComponentLabel(G, i, parents);
+        }
     }
-  }
-  return parents;
+#ifdef ACCESS_OBSERVER
+    annotation << "END: CC()";
+    access_observer.write(
+        annotation.str()
+    );
+    std::stringstream().swap(annotation);
+    access_observer.save();
+#endif
+    return parents;
 }
 
-}  // namespace bfs_cc
-}  // namespace gbbs
+template <template <class W> class vertex, class W>
+inline sequence<uintE> CC(asymmetric_graph<vertex, W> &G) {
+//template <class Graph> inline sequence<parent> CC(Graph &G) {
+    size_t n = G.n;
+    auto parents = pbbs::sequence<parent>(n, UINT_E_MAX);
+#ifdef ACCESS_OBSERVER
+        annotation << "BEGIN: CC(),GraphAddress="
+                   << &G;
+        access_observer.write(
+            annotation.str()
+        );
+        std::stringstream().swap(annotation);
+#endif
+    for (size_t i = 0; i < n; i++) {
+        if (parents[i] == UINT_E_MAX) {
+#ifdef ACCESS_OBSERVER
+        annotation << "BEGIN: BFS_ComponentLabel()";
+        access_observer.write(annotation.str());
+        std::stringstream().swap(annotation);
+#endif
+            BFS_ComponentLabel(G, i, parents);
+#ifdef ACCESS_OBSERVER
+        annotation << "END: BFS_ComponentLabel()";
+        access_observer.write(annotation.str());
+        std::stringstream().swap(annotation);
+#endif
+        }
+    }
+#ifdef ACCESS_OBSERVER
+    annotation << "END: CC()";
+    access_observer.write(
+        annotation.str()
+    );
+    std::stringstream().swap(annotation);
+    access_observer.save();
+#endif
+    return parents;
+}
+
+} // namespace bfs_cc
+} // namespace gbbs

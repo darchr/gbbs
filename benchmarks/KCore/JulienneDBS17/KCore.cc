@@ -36,33 +36,47 @@
 #include "KCore.h"
 
 namespace gbbs {
-template <class Graph>
-double KCore_runner(Graph& G, commandLine P) {
-  size_t num_buckets = P.getOptionLongValue("-nb", 16);
-  bool fa = P.getOption("-fa");
-  std::cout << "### Application: KCore" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: -nb (num_buckets) = " << num_buckets << " -fa (use fetch_and_add) = " << fa << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
-  if (num_buckets != static_cast<size_t>((1 << pbbslib::log2_up(num_buckets)))) {
-    std::cout << "Number of buckets must be a power of two."
-              << "\n";
-    exit(-1);
-  }
-  assert(P.getOption("-s"));
+template <class Graph> double KCore_runner(Graph &G, commandLine P) {
+    size_t num_buckets = P.getOptionLongValue("-nb", 16);
+    bool fa = P.getOption("-fa");
+    std::string stat_file = P.getOptionValue("-statFile", "");
+    std::cout << "### Application: KCore" << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: -nb (num_buckets) = " << num_buckets
+              << " -fa (use fetch_and_add) = " << fa << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
+    if (num_buckets !=
+        static_cast<size_t>((1 << pbbslib::log2_up(num_buckets)))) {
+        std::cout << "Number of buckets must be a power of two."
+                  << "\n";
+        exit(-1);
+    }
+    assert(P.getOption("-s"));
 
-  // runs the fetch-and-add based implementation if set.
-  timer t; t.start();
-  auto cores = (fa) ? KCore_FA(G, num_buckets) : KCore(G, num_buckets);
-  double tt = t.stop();
+    // runs the fetch-and-add based implementation if set.
+    timer t;
+    t.start();
+#ifdef ACCESS_OBSERVER
+    access_observer.set_timer(&t);
+#endif
+    auto cores = (fa) ? KCore_FA(G, num_buckets) : KCore(G, num_buckets);
+    double tt = t.stop();
 
-  std::cout << "### Running Time: " << tt << std::endl;
+    std::cout << "### Running Time: " << tt << std::endl;
+    if (stat_file != "") {
+        std::cout << "### Stat file: " << stat_file << std::endl;
+        std::cout << "### Saving time to: " << stat_file << std::endl;
+        std::ofstream my_file;
+        my_file.open(stat_file);
+        my_file << tt;
+        my_file.close();
+    }
 
-  return tt;
+    return tt;
 }
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_symmetric_main(gbbs::KCore_runner, false);

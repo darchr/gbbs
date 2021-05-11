@@ -36,24 +36,35 @@
 
 namespace gbbs {
 
-template <class Graph>
-double CC_runner(Graph& G, commandLine P) {
-  std::cout << "### Application: CC (Connectivity)" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
-  assert(P.getOption("-s"));
-  timer t;
-  t.start();
-  auto components = bfs_cc::CC(G);
-  double tt = t.stop();
-  std::cout << "### Running Time: " << tt << std::endl;
+template <class Graph> double CC_runner(Graph &G, commandLine P) {
+    std::string stat_file = P.getOptionValue("-statFile", "");
+    std::cout << "### Application: CC (Connectivity)" << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
+    assert(P.getOption("-s"));
+    timer t;
+    t.start();
+#ifdef ACCESS_OBSERVER
+    access_observer.set_timer(&t);
+#endif
+    auto components = bfs_cc::CC(G);
+    double tt = t.stop();
 
-  return tt;
+    std::cout << "### Running Time: " << tt << std::endl;
+    if (stat_file != "") {
+        std::cout << "### Stat file: " << stat_file << std::endl;
+        std::cout << "### Saving time to: " << stat_file << std::endl;
+        std::ofstream my_file;
+        my_file.open(stat_file);
+        my_file << tt;
+        my_file.close();
+    }
+    return tt;
 }
 
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_main(gbbs::CC_runner, false);
