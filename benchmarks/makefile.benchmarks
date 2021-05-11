@@ -1,4 +1,4 @@
-INCLUDE_DIRS = -I$(ROOTDIR)
+INCLUDE_DIRS = -I$(ROOTDIR) -I/home/jtoya/tools/pcm
 
 .DEFAULT_GOAL := all
 
@@ -15,6 +15,7 @@ LIGRA_OBJS_CLEAN = $(wildcard $(ROOTDIR)bin/gbbs/*.o)
 LIGRA_ENCODING_OBJS_CLEAN = $(wildcard $(ROOTDIR)bin/gbbs/encodings/*.o)
 PBBSLIB_OBJS_CLEAN = $(wildcard $(ROOTDIR)bin/pbbslib/*.o)
 PBBSLIB_STRINGS_OBJS_CLEAN = $(wildcard $(ROOTDIR)bin/pbbslib/strings/*.o)
+PCM_OBJ = /home/jtoya/tools/pcm/libpcm.so
 
 ALL_OBJS_CLEAN = $(LIGRA_OBJS_CLEAN) $(LIGRA_ENCODING_OBJS_CLEAN) $(PBBSLIB_OBJS_CLEAN) $(PBBSLIB_STRINGS_OBJS_CLEAN) $(OTHER_OBJS_CLEAN)
 

@@ -1,5 +1,7 @@
 include ../makefile.variables
 
+INCLUDE_DIRS = -I/home/jtoya/tools/pcm
+
 OBJDIR = ../bin/pbbslib/
 
 ALL_PRE = alloc get_time memory_size parallel scheduler time_operations utilities
@@ -14,10 +16,10 @@ $(OBJDIR)utilities.o : utilities.cc $(addprefix $(OBJDIR), parallel.o)
 	$(CC) $(CFLAGS) $(PFLAGS) -c $< -o $@
 
 $(OBJDIR)alloc.o : alloc.cc $(addprefix $(OBJDIR), memory_size.o parallel.o)
-	$(CC) $(CFLAGS) $(PFLAGS) -c $< -o $@
+	$(CC) $(INCLUDE_DIRS) $(CFLAGS) $(PFLAGS) -c $< -o $@
 
 $(OBJDIR)%.o : %.cc
-	$(CC) $(CFLAGS) $(PFLAGS) -c $< -o $@
+	$(CC) $(INCLUDE_DIRS) $(CFLAGS) $(PFLAGS) -c $< -o $@
 
 $(OBJDIR)%.a : $(OBJDIR)%.o
 	ar -rcs $@ $<

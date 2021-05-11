@@ -46,7 +46,8 @@ CFLAGS = \
 	$(INTE) \
 	$(CONCEPTS) \
 	-DAMORTIZEDPD \
-	-DUSEMALLOC
+        -DUSE_PCM_LIB
+#	-DUSEMALLOC
 # Add GCC-specific and Clang-specific flags
 ifeq ($(OS), linux)
   CFLAGS += \
@@ -68,20 +69,22 @@ PFLAGS = $(CILKFLAGS)
 else ifdef CILK
 CC = g++
 PFLAGS = $(CILKFLAGS)
-LFLAGS = -lcilkrts
+LFLAGS = \
+         -lcilkrts
 else ifdef OPENMP
 CC = g++
 PFLAGS = $(OMPFLAGS)
 LFLAGS = -fopenmp
 else ifdef HOMEGROWN
-CC = g++
+CC = g++-10
 PFLAGS = $(HGFLAGS)
 else ifdef SERIAL
 CC = g++
 PFLAGS =
 else # default is homegrown
-CC = g++
+CC = g++-10
 PFLAGS = $(HGFLAGS)
+LFLAGS = -L/home/jtoya/tools/pcm -lpcm
 endif
 
 ifeq ($(OS), linux)
