@@ -43,30 +43,30 @@
 #include <iostream>
 
 namespace gbbs {
-template <class Graph>
-double Coloring_runner(Graph& G, commandLine P) {
-  bool runLF = P.getOption("-lf");
-  std::cout << "### Application: Coloring" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: -lf = " << runLF << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+template <class Graph> double Coloring_runner(Graph &G, commandLine P) {
+    bool runLF = P.getOption("-lf");
+    std::cout << "### Application: Coloring" << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: -lf = " << runLF << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  timer t; t.start();
-  auto colors = Coloring(G, runLF);
-  double tt = t.stop();
-  if (P.getOption("-stats")) {
-    std::cout << "num_colors = " << pbbslib::reduce_max(colors) << "\n";
-  }
-  if (P.getOption("-verify)")) {
-    verify_coloring(G, colors);
-  }
+    timer t;
+    t.start();
+    auto colors = Coloring(G, runLF);
+    double tt = t.stop();
+    if (P.getOption("-stats")) {
+        std::cout << "num_colors = " << pbbslib::reduce_max(colors) << "\n";
+    }
+    if (P.getOption("-verify)")) {
+        verify_coloring(G, colors);
+    }
 
-  std::cout << "### Running Time: " << tt << std::endl;
-  return tt;
+    std::cout << "### Running Time: " << tt << std::endl;
+    return tt;
 }
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_main(gbbs::Coloring_runner, false);

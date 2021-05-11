@@ -22,8 +22,8 @@
 // SOFTWARE.
 
 // Usage:
-// numactl -i all ./SSBetweennessCentrality -src 10012 -s -m -rounds 3 twitter_SJ
-// flags:
+// numactl -i all ./SSBetweennessCentrality -src 10012 -s -m -rounds 3
+// twitter_SJ flags:
 //   required:
 //     -src: the source to compute centrality contributions from
 //   optional:
@@ -37,41 +37,42 @@
 namespace gbbs {
 
 template <class Graph>
-double SSBetweennessCentrality_runner(Graph& G, commandLine P) {
-  uintE src = static_cast<uintE>(P.getOptionLongValue("-src", 0));
-  std::cout << "### Application: SSBetweennessCentrality" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: -src = " << src << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+double SSBetweennessCentrality_runner(Graph &G, commandLine P) {
+    uintE src = static_cast<uintE>(P.getOptionLongValue("-src", 0));
+    std::cout << "### Application: SSBetweennessCentrality" << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: -src = " << src << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  timer t; t.start();
-  if (P.getOptionValue("-fa")) {
-    auto scores = bc::SSBetweennessCentrality_EM(G, src);
-    for (size_t i=0; i<100; i++) {
-      std::cout << scores[i] << std::endl;
+    timer t;
+    t.start();
+    if (P.getOptionValue("-fa")) {
+        auto scores = bc::SSBetweennessCentrality_EM(G, src);
+        for (size_t i = 0; i < 100; i++) {
+            std::cout << scores[i] << std::endl;
+        }
+    } else if (P.getOptionValue("-ligra")) {
+        auto scores = bc::SSBetweennessCentrality(G, src);
+        for (size_t i = 0; i < 100; i++) {
+            std::cout << scores[i] << std::endl;
+        }
+    } else {
+        /* no contention --- reduceNgh technique */
+        auto scores = bc_bfs::SSBetweennessCentrality_BFS(G, src);
+        for (size_t i = 0; i < 100; i++) {
+            std::cout << scores[i] << std::endl;
+        }
     }
-  } else if (P.getOptionValue("-ligra")) {
-    auto scores = bc::SSBetweennessCentrality(G, src);
-    for (size_t i=0; i<100; i++) {
-      std::cout << scores[i] << std::endl;
-    }
-  } else {
-    /* no contention --- reduceNgh technique */
-    auto scores = bc_bfs::SSBetweennessCentrality_BFS(G, src);
-    for (size_t i=0; i<100; i++) {
-      std::cout << scores[i] << std::endl;
-    }
-  }
 
-  double tt = t.stop();
-  std::cout << "### Running Time: " << tt << std::endl;
+    double tt = t.stop();
+    std::cout << "### Running Time: " << tt << std::endl;
 
-  return tt;
+    return tt;
 }
 
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_main(gbbs::SSBetweennessCentrality_runner, false);

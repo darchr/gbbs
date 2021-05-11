@@ -37,41 +37,43 @@
 #include "benchmarks/SpanningForest/check.h"
 
 namespace gbbs {
-template <class Graph>
-double SpanningForest_runner(Graph& G, commandLine P) {
-  auto beta = P.getOptionDoubleValue("-beta", 0.2);
-  std::cout << "### Application: SpanningForest" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: -beta = " << beta << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+template <class Graph> double SpanningForest_runner(Graph &G, commandLine P) {
+    auto beta = P.getOptionDoubleValue("-beta", 0.2);
+    std::cout << "### Application: SpanningForest" << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: -beta = " << beta << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  auto pack = P.getOption("-pack");
-  assert(P.getOption("-s"));
-  assert(!pack); // discouraged for now. Using the optimized contraction method is faster.
-  timer t;
-  t.start();
-  auto edges = workefficient_sf::SpanningForest(G, beta, pack, P.getOptionValue("-permute"));
-  std::cout << "n = " << G.n << " #edges = " << edges.size() << std::endl;
-  double tt = t.stop();
-  std::cout << "### Running Time: " << tt << std::endl;
+    auto pack = P.getOption("-pack");
+    assert(P.getOption("-s"));
+    assert(!pack); // discouraged for now. Using the optimized contraction
+                   // method is faster.
+    timer t;
+    t.start();
+    auto edges = workefficient_sf::SpanningForest(G, beta, pack,
+                                                  P.getOptionValue("-permute"));
+    std::cout << "n = " << G.n << " #edges = " << edges.size() << std::endl;
+    double tt = t.stop();
+    std::cout << "### Running Time: " << tt << std::endl;
 
-  std::cout << "vtx 0 has degree: " << G.get_vertex(0).out_degree() << std::endl;
+    std::cout << "vtx 0 has degree: " << G.get_vertex(0).out_degree()
+              << std::endl;
 
-  if (P.getOptionValue("-check")) {
-    auto bfs_edges = bfs_sf::SpanningForestDet(G);
-    spanning_forest::check_spanning_forest(G.n, bfs_edges, edges);
-  }
+    if (P.getOptionValue("-check")) {
+        auto bfs_edges = bfs_sf::SpanningForestDet(G);
+        spanning_forest::check_spanning_forest(G.n, bfs_edges, edges);
+    }
 
-  if (pack) {
-    // packing mutates the graph, packing out all intra-cluster edges, and can
-    // only be run once unless the input graph is copied.
-    exit(0);
-  }
-  return tt;
+    if (pack) {
+        // packing mutates the graph, packing out all intra-cluster edges, and
+        // can only be run once unless the input graph is copied.
+        exit(0);
+    }
+    return tt;
 }
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_main(gbbs::SpanningForest_runner, false);

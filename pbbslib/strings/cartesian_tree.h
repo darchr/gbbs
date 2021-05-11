@@ -24,8 +24,8 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Parallel algorithm for Catesian trees
-// Takes a sequence of integers and returns a parent sequence of the same length.
-// Each location points to its parent location in the Cartesian tree.
+// Takes a sequence of integers and returns a parent sequence of the same
+// length. Each location points to its parent location in the Cartesian tree.
 // The tree is binary: ties are broken arbitrarily
 // The root points to itself
 // If a parent points to the left, then it is a right child
@@ -34,51 +34,67 @@
 
 namespace pbbs {
 
-  template <class Index>
-  struct ct_node { Index value; Index parent;};
+template <class Index> struct ct_node {
+    Index value;
+    Index parent;
+};
 
-  template <class Index>
-  void ct_merge(ct_node<Index>* N, Index left, Index right) {
+template <class Index>
+void ct_merge(ct_node<Index> *N, Index left, Index right) {
     Index head;
     if (N[left].value > N[right].value) {
-      head = left; left = N[left].parent;}
-    else {head = right; right= N[right].parent;}
-
-    while(1) {
-      if (left == 0) {N[head].parent = right; break;}
-      if (right == 0) {N[head].parent = left; break;}
-      if (N[left].value > N[right].value) {
-	N[head].parent = left; left = N[left].parent;}
-      else {N[head].parent = right; right = N[right].parent;}
-      head = N[head].parent;
-    }
-  }
-
-  template <class Index>
-  void cartesian_tree_r(ct_node<Index>* Nodes, Index s, Index e) {
-    if (e-s < 2) {
-    } else if (e-s == 2) {
-      if (Nodes[s].value > Nodes[s+1].value)
-	Nodes[s].parent=s+1;
-      else Nodes[s+1].parent=s;
+        head = left;
+        left = N[left].parent;
     } else {
-      Index mid = (s+e)/2;
-      par_do_if((e-s) > 1000,
-		[&] () {cartesian_tree_r(Nodes, s, mid);},
-		[&] () {cartesian_tree_r(Nodes, mid, e);});
-      ct_merge(Nodes, mid-1, mid);
+        head = right;
+        right = N[right].parent;
     }
-  }
 
-  template <class Index>
-  sequence<Index> cartesian_tree(sequence<Index> const &S) {
+    while (1) {
+        if (left == 0) {
+            N[head].parent = right;
+            break;
+        }
+        if (right == 0) {
+            N[head].parent = left;
+            break;
+        }
+        if (N[left].value > N[right].value) {
+            N[head].parent = left;
+            left = N[left].parent;
+        } else {
+            N[head].parent = right;
+            right = N[right].parent;
+        }
+        head = N[head].parent;
+    }
+}
+
+template <class Index>
+void cartesian_tree_r(ct_node<Index> *Nodes, Index s, Index e) {
+    if (e - s < 2) {
+    } else if (e - s == 2) {
+        if (Nodes[s].value > Nodes[s + 1].value)
+            Nodes[s].parent = s + 1;
+        else
+            Nodes[s + 1].parent = s;
+    } else {
+        Index mid = (s + e) / 2;
+        par_do_if((e - s) > 1000, [&]() { cartesian_tree_r(Nodes, s, mid); },
+                  [&]() { cartesian_tree_r(Nodes, mid, e); });
+        ct_merge(Nodes, mid - 1, mid);
+    }
+}
+
+template <class Index>
+sequence<Index> cartesian_tree(sequence<Index> const &S) {
     size_t n = S.size();
-    sequence<ct_node<Index>> Nodes(n, [&] (Index i) {
-	ct_node<Index> r = {S[i], 0};
-	return r; });
-    cartesian_tree_r(Nodes.begin(), (Index) 0, (Index) n);
-    return sequence<Index>(n, [&] (size_t i) {
-	return Nodes[i].parent;});
-  }
+    sequence<ct_node<Index>> Nodes(n, [&](Index i) {
+        ct_node<Index> r = {S[i], 0};
+        return r;
+    });
+    cartesian_tree_r(Nodes.begin(), (Index)0, (Index)n);
+    return sequence<Index>(n, [&](size_t i) { return Nodes[i].parent; });
+}
 
-}  // namespace pbbs
+} // namespace pbbs

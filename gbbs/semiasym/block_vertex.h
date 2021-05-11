@@ -31,87 +31,92 @@ namespace gbbs {
 
 namespace block_vertex_ops {
 
-template <class It>
-size_t intersect(It& a, It& b) {
-  size_t i=0; size_t j=0;
-  size_t nA = a.degree(); size_t nB = b.degree();
-  size_t ans = 0;
-  bool advance_a = false;
-  bool advance_b = false;
-  while (i < nA && j < nB) {
-    if (advance_a) {
-      advance_a = false;
-      a.next();
+template <class It> size_t intersect(It &a, It &b) {
+    size_t i = 0;
+    size_t j = 0;
+    size_t nA = a.degree();
+    size_t nB = b.degree();
+    size_t ans = 0;
+    bool advance_a = false;
+    bool advance_b = false;
+    while (i < nA && j < nB) {
+        if (advance_a) {
+            advance_a = false;
+            a.next();
+        }
+        if (advance_b) {
+            advance_b = false;
+            b.next();
+        }
+        if (a.cur() == b.cur()) {
+            advance_a = true;
+            advance_b = true;
+            i++;
+            j++;
+            ans++;
+        } else if (a.cur() < b.cur()) {
+            advance_a = true;
+            i++;
+        } else {
+            advance_b = true;
+            j++;
+        }
     }
-    if (advance_b) {
-      advance_b = false;
-      b.next();
-    }
-    if (a.cur() == b.cur()) {
-      advance_a = true;
-      advance_b = true;
-      i++; j++; ans++;
-    } else if (a.cur() < b.cur()) {
-      advance_a = true;
-      i++;
-    } else {
-      advance_b = true;
-      j++;
-    }
-  }
-  return ans;
+    return ans;
 }
 
-template <class S, class It>
-size_t intersect_seq(S& a, It& b) {
-  size_t i=0; size_t j=0;
-  size_t nA = a.size(); size_t nB = b.degree();
-  size_t ans = 0;
-  uintE b_cur;
-  if (j < nB) b_cur = b.cur();
-  while (i < nA && j < nB) {
-    if (a[i] == b_cur) {
-      i++; j++; ans++;
-      if (j < nB) {
-        b_cur = b.next();
-      }
-    } else if (a[i] < b_cur) {
-      i++;
-    } else {
-      j++;
-      if (j < nB) {
-        b_cur = b.next();
-      }
+template <class S, class It> size_t intersect_seq(S &a, It &b) {
+    size_t i = 0;
+    size_t j = 0;
+    size_t nA = a.size();
+    size_t nB = b.degree();
+    size_t ans = 0;
+    uintE b_cur;
+    if (j < nB)
+        b_cur = b.cur();
+    while (i < nA && j < nB) {
+        if (a[i] == b_cur) {
+            i++;
+            j++;
+            ans++;
+            if (j < nB) {
+                b_cur = b.next();
+            }
+        } else if (a[i] < b_cur) {
+            i++;
+        } else {
+            j++;
+            if (j < nB) {
+                b_cur = b.next();
+            }
+        }
     }
-  }
-  return ans;
+    return ans;
 }
 
-template <class SeqA, class SeqB>
-size_t seq_merge(SeqA& A, SeqB& B) {
-  using T = typename SeqA::value_type;
-  size_t nA = A.size(), nB = B.size();
-  size_t i = 0, j = 0;
-  size_t ct = 0;
-  while (i < nA && j < nB) {
-    T& a = A[i];
-    T& b = B[j];
-    if (a == b) {
-      i++;
-      j++;
-      ct++;
-    } else if (a < b) {
-      i++;
-    } else {
-      j++;
+template <class SeqA, class SeqB> size_t seq_merge(SeqA &A, SeqB &B) {
+    using T = typename SeqA::value_type;
+    size_t nA = A.size(), nB = B.size();
+    size_t i = 0, j = 0;
+    size_t ct = 0;
+    while (i < nA && j < nB) {
+        T &a = A[i];
+        T &b = B[j];
+        if (a == b) {
+            i++;
+            j++;
+            ct++;
+        } else if (a < b) {
+            i++;
+        } else {
+            j++;
+        }
     }
-  }
-  return ct;
+    return ct;
 }
 
-
-//template <class S, class It>
-//size_t intersect_batch_seq(S& a, It& b) {
+// template <class S, class It>
+// size_t intersect_batch_seq(S& a, It& b) {
 //  size_t b_size = 128;
 //  uintE block[b_size];
 //  size_t n_blocks = pbbs::num_blocks(b.degree(), b_size);
@@ -143,170 +148,176 @@ size_t seq_merge(SeqA& A, SeqB& B) {
 //  return ans;
 //}
 
-
 /* Used to map over the edges incident to v */
 template <class BM /* block_manager */, class W /* weight */,
           class F /* user-specified mapping function */>
-inline void map_nghs(uintE vtx_id, BM& block_manager, F& f, bool parallel) {
-  par_for(0, block_manager.num_blocks(), 1,
-          [&](size_t block_num) {
+inline void map_nghs(uintE vtx_id, BM &block_manager, F &f, bool parallel) {
+    par_for(
+        0, block_manager.num_blocks(), 1,
+        [&](size_t block_num) {
             block_manager.decode_block(
-                block_num, [&](const uintE& ngh, const W& wgh, uintE edge_num) {
-                  f(vtx_id, ngh, wgh);
+                block_num, [&](const uintE &ngh, const W &wgh, uintE edge_num) {
+                    f(vtx_id, ngh, wgh);
                 });
-          },
-          parallel);
+        },
+        parallel);
 }
 
 /* Map over edges incident to v using M, reduce using Monoid */
 template <class BM /* block_manager */, class W /* weight */,
           class M /* mapping function */, class Monoid /* reduction monoid */>
-inline auto map_reduce(uintE vtx_id, BM& block_manager, M& m, Monoid& reduce,
+inline auto map_reduce(uintE vtx_id, BM &block_manager, M &m, Monoid &reduce,
                        bool parallel = true) -> typename Monoid::T {
-  using T = typename Monoid::T;
-  size_t num_blocks = block_manager.num_blocks();
-  if (num_blocks >= 1) {
-    T stk[100];
-    T* block_outputs;
-    if (num_blocks > 100) {
-      // TODO: should the interface for reduce_nghs expect a tmp memory
-      // allocation for sizes larger than 100 (reduce_alloc_thresh)? Concern is
-      // that in-line memory allocation for large vertices is far slower than
-      // doing a bulk-memory allocation up front and receiving offsets.
-      block_outputs = pbbslib::new_array_no_init<T>(num_blocks);
-    } else {
-      block_outputs = (T*)stk;
-    }
+    using T = typename Monoid::T;
+    size_t num_blocks = block_manager.num_blocks();
+    if (num_blocks >= 1) {
+        T stk[100];
+        T *block_outputs;
+        if (num_blocks > 100) {
+            // TODO: should the interface for reduce_nghs expect a tmp memory
+            // allocation for sizes larger than 100 (reduce_alloc_thresh)?
+            // Concern is that in-line memory allocation for large vertices is
+            // far slower than doing a bulk-memory allocation up front and
+            // receiving offsets.
+            block_outputs = pbbslib::new_array_no_init<T>(num_blocks);
+        } else {
+            block_outputs = (T *)stk;
+        }
 
-    par_for(0, num_blocks, 1,
+        par_for(
+            0, num_blocks, 1,
             [&](size_t block_num) {
-              T cur = reduce.identity;
-              block_manager.decode_block(
-                  block_num,
-                  [&](const uintE& ngh, const W& wgh, uintE edge_num) {
-                    cur = reduce.f(cur, m(vtx_id, ngh, wgh));
-                  });
-              block_outputs[block_num] = cur;
+                T cur = reduce.identity;
+                block_manager.decode_block(
+                    block_num,
+                    [&](const uintE &ngh, const W &wgh, uintE edge_num) {
+                        cur = reduce.f(cur, m(vtx_id, ngh, wgh));
+                    });
+                block_outputs[block_num] = cur;
             },
             parallel);
 
-    auto im = pbbslib::make_sequence(block_outputs, num_blocks);
-    T res = pbbslib::reduce(im, reduce);
-    if (num_blocks > 100) {
-      pbbslib::free_array(block_outputs);
+        auto im = pbbslib::make_sequence(block_outputs, num_blocks);
+        T res = pbbslib::reduce(im, reduce);
+        if (num_blocks > 100) {
+            pbbslib::free_array(block_outputs);
+        }
+        return res;
+    } else {
+        return reduce.identity;
     }
-    return res;
-  } else {
-    return reduce.identity;
-  }
 }
 
 /* Used to copy edges incident to a vertex */
 template <class BM /* block_manager */, class W /* weight */,
           class F /* mapping function */, class G /* output function */>
-inline void copyNghs(uintE vtx_id, BM& block_manager, uintT o, F& f, G& g,
+inline void copyNghs(uintE vtx_id, BM &block_manager, uintT o, F &f, G &g,
                      bool parallel) {
-  par_for(0, block_manager.num_blocks(), 1,
-          [&](size_t block_num) {
+    par_for(
+        0, block_manager.num_blocks(), 1,
+        [&](size_t block_num) {
             block_manager.decode_block(
-                block_num, [&](const uintE& ngh, const W& wgh, uintE edge_num) {
-                  auto val = f(vtx_id, ngh, wgh);
-                  g(ngh, o + edge_num, val);
+                block_num, [&](const uintE &ngh, const W &wgh, uintE edge_num) {
+                    auto val = f(vtx_id, ngh, wgh);
+                    g(ngh, o + edge_num, val);
                 });
-          },
-          parallel);
+        },
+        parallel);
 }
 
 /* For each out-neighbor satisfying cond, call updateAtomic */
 template <class BM /* block_manager */, class W /* weight */,
           class F /* mapping function */, class G /* full output function */,
           class H /* empty output function */>
-inline void decodeNghsSparse(uintE vtx_id, BM& block_manager, uintT o, F& f,
-                             G& g, H& h, bool parallel) {
-  par_for(0, block_manager.num_blocks(), 1,
-          [&](size_t block_num) {
+inline void decodeNghsSparse(uintE vtx_id, BM &block_manager, uintT o, F &f,
+                             G &g, H &h, bool parallel) {
+    par_for(
+        0, block_manager.num_blocks(), 1,
+        [&](size_t block_num) {
             block_manager.decode_block(
-                block_num, [&](const uintE& ngh, const W& wgh, uintE edge_num) {
-                  if (f.cond(ngh)) {
-                    auto m = f.updateAtomic(vtx_id, ngh, wgh);
-                    g(ngh, o + edge_num, m);
-                  } else {
-                    h(ngh, o + edge_num);
-                  }
+                block_num, [&](const uintE &ngh, const W &wgh, uintE edge_num) {
+                    if (f.cond(ngh)) {
+                        auto m = f.updateAtomic(vtx_id, ngh, wgh);
+                        g(ngh, o + edge_num, m);
+                    } else {
+                        h(ngh, o + edge_num);
+                    }
                 });
-          },
-          parallel);
+        },
+        parallel);
 }
 
 /* For each out-neighbor satisfying cond, call updateAtomic */
 template <class BM /* block_manager */, class W /* weight */,
           class F /* mapping function */, class G /* output function */>
-inline void decodeNghs(uintE vtx_id, BM& block_manager, F& f, G& g,
+inline void decodeNghs(uintE vtx_id, BM &block_manager, F &f, G &g,
                        bool parallel) {
-  par_for(0, block_manager.num_blocks(), 1,
-          [&](size_t block_num) {
+    par_for(
+        0, block_manager.num_blocks(), 1,
+        [&](size_t block_num) {
             block_manager.decode_block(
-                block_num, [&](const uintE& ngh, const W& wgh, uintE edge_num) {
-                  auto m = f.updateAtomic(vtx_id, ngh, wgh);
-                  g(ngh, m);
+                block_num, [&](const uintE &ngh, const W &wgh, uintE edge_num) {
+                    auto m = f.updateAtomic(vtx_id, ngh, wgh);
+                    g(ngh, m);
                 });
-          },
-          parallel);
+        },
+        parallel);
 }
 
 /* Sequentially process incident edges and quit if cond on self fails. */
 template <class BM /* block_manager */, class W /* weight */,
           class F /* mapping function */, class G /* output function */,
           class VS /* vertex_subset type */>
-inline void decodeNghsBreakEarly(uintE vtx_id, BM& block_manager,
-                                 VS& vertexSubset, F& f, G& g, bool parallel) {
-  if (block_manager.get_degree() > 0) {
-    if (!parallel) {
-      for (size_t i = 0; i < block_manager.num_blocks(); i++) {
-        block_manager.decode_block_cond(
-            i, [&](const uintE& ngh, const W& wgh, const size_t& edge_num) {
-              if (vertexSubset.isIn(ngh)) {
-                auto m = f.update(ngh, vtx_id, wgh);
-                g(vtx_id, m);
-                return f.cond(vtx_id);
-              }
-              return true;
+inline void decodeNghsBreakEarly(uintE vtx_id, BM &block_manager,
+                                 VS &vertexSubset, F &f, G &g, bool parallel) {
+    if (block_manager.get_degree() > 0) {
+        if (!parallel) {
+            for (size_t i = 0; i < block_manager.num_blocks(); i++) {
+                block_manager.decode_block_cond(i, [&](const uintE &ngh,
+                                                       const W &wgh,
+                                                       const size_t &edge_num) {
+                    if (vertexSubset.isIn(ngh)) {
+                        auto m = f.update(ngh, vtx_id, wgh);
+                        g(vtx_id, m);
+                        return f.cond(vtx_id);
+                    }
+                    return true;
+                });
+            }
+        } else {
+            size_t num_blocks = block_manager.num_blocks();
+            par_for(0, num_blocks, 1, [&](size_t block_num) {
+                block_manager.decode_block_cond(
+                    block_num, [&](const uintE &ngh, const W &wgh,
+                                   const size_t &edge_num) {
+                        if (vertexSubset.isIn(ngh)) {
+                            auto m = f.updateAtomic(ngh, vtx_id, wgh);
+                            g(vtx_id, m);
+                            return f.cond(vtx_id);
+                        }
+                        return true;
+                    });
             });
-      }
-    } else {
-      size_t num_blocks = block_manager.num_blocks();
-      par_for(0, num_blocks, 1, [&](size_t block_num) {
-        block_manager.decode_block_cond(
-            block_num,
-            [&](const uintE& ngh, const W& wgh, const size_t& edge_num) {
-              if (vertexSubset.isIn(ngh)) {
-                auto m = f.updateAtomic(ngh, vtx_id, wgh);
-                g(vtx_id, m);
-                return f.cond(vtx_id);
-              }
-              return true;
-            });
-      });
+        }
     }
-  }
 }
 
 template <class BM /* block manager */, class W /* weight */,
           class F /* edgemap struct */, class G /* output function */>
-inline size_t decode_block(uintE vtx_id, BM& block_manager, uintT o,
-                           uintE block_num, F& f, G& g) {
-  size_t k = 0;
-  block_manager.decode_block(
-      block_num, [&](const uintE& ngh, const W& wgh, uintE edge_num) {
-        if (f.cond(ngh)) {
-          auto m = f.updateAtomic(vtx_id, ngh, wgh);
-          bool wrote = g(ngh, o + k, m);
-          if (wrote) {
-            k++;
-          }
-        }
-      });
-  return k;
+inline size_t decode_block(uintE vtx_id, BM &block_manager, uintT o,
+                           uintE block_num, F &f, G &g) {
+    size_t k = 0;
+    block_manager.decode_block(
+        block_num, [&](const uintE &ngh, const W &wgh, uintE edge_num) {
+            if (f.cond(ngh)) {
+                auto m = f.updateAtomic(vtx_id, ngh, wgh);
+                bool wrote = g(ngh, o + k, m);
+                if (wrote) {
+                    k++;
+                }
+            }
+        });
+    return k;
 }
 
 //// functions to pack
@@ -343,6 +354,6 @@ inline size_t decode_block(uintE vtx_id, BM& block_manager, uintT o,
 //  }
 //}
 
-}  // namespace block_vertex_ops
+} // namespace block_vertex_ops
 
-}  // namespace gbbs
+} // namespace gbbs

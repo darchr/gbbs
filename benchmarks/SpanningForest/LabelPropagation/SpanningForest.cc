@@ -22,39 +22,39 @@
 // SOFTWARE.
 
 #include "SpanningForest.h"
-#include "gbbs/gbbs.h"
 #include "benchmarks/SpanningForest/BFSSF/SpanningForest.h"
 #include "benchmarks/SpanningForest/check.h"
+#include "gbbs/gbbs.h"
 
 namespace gbbs {
-template <class Graph>
-double SF_runner(Graph& G, commandLine P) {
-  std::cout << "### Application: SpanningForest (LabelPropagation-based)" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+template <class Graph> double SF_runner(Graph &G, commandLine P) {
+    std::cout << "### Application: SpanningForest (LabelPropagation-based)"
+              << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  timer t;
-  t.start();
-  pbbs::sequence<edge> edges;
-  if (P.getOptionValue("-permute")) {
-    edges = labelprop_sf::SpanningForest</*use_permutation=*/true>(G);
-  } else {
-    edges = labelprop_sf::SpanningForest</*use_permutation=*/false>(G);
-  }
-  std::cout << "sf has: " << edges.size() << " many edges" << std::endl;
-  double tt = t.stop();
-  std::cout << "### Running Time: " << tt << std::endl;
+    timer t;
+    t.start();
+    pbbs::sequence<edge> edges;
+    if (P.getOptionValue("-permute")) {
+        edges = labelprop_sf::SpanningForest</*use_permutation=*/true>(G);
+    } else {
+        edges = labelprop_sf::SpanningForest</*use_permutation=*/false>(G);
+    }
+    std::cout << "sf has: " << edges.size() << " many edges" << std::endl;
+    double tt = t.stop();
+    std::cout << "### Running Time: " << tt << std::endl;
 
-  if (P.getOptionValue("-check")) {
-    auto bfs_edges = bfs_sf::SpanningForestDet(G);
-    spanning_forest::check_spanning_forest(G.n, bfs_edges, edges);
-  }
+    if (P.getOptionValue("-check")) {
+        auto bfs_edges = bfs_sf::SpanningForestDet(G);
+        spanning_forest::check_spanning_forest(G.n, bfs_edges, edges);
+    }
 
-  return tt;
+    return tt;
 }
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_main(gbbs::SF_runner, false);

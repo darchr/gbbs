@@ -22,8 +22,8 @@
 // SOFTWARE.
 
 // Usage:
-// numactl -i all ./MaximalIndependentSet -stats -rounds 4 -s com-orkut.ungraph.txt_SJ
-// flags:
+// numactl -i all ./MaximalIndependentSet -stats -rounds 4 -s
+// com-orkut.ungraph.txt_SJ flags:
 //   required:
 //     -s : indicate that the graph is symmetric
 //   optional:
@@ -38,54 +38,60 @@
 namespace gbbs {
 
 template <class Graph>
-double MaximalIndependentSet_runner(Graph& G, commandLine P) {
-  bool spec_for = P.getOption("-specfor");
-  std::cout << "### Application: MaximalIndependentSet" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: -specfor (deterministic reservations) = " << spec_for << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+double MaximalIndependentSet_runner(Graph &G, commandLine P) {
+    bool spec_for = P.getOption("-specfor");
+    std::cout << "### Application: MaximalIndependentSet" << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: -specfor (deterministic reservations) = "
+              << spec_for << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  assert(P.getOption("-s"));
-  double tt = 0.0;
+    assert(P.getOption("-s"));
+    double tt = 0.0;
 
-  // Code below looks duplicated; this is because the return types of specfor
-  // and rootset are different
-  if (spec_for) {
-    timer t; t.start();
-    auto MaximalIndependentSet = MaximalIndependentSet_spec_for::MaximalIndependentSet(G);
-    // in spec_for, MaximalIndependentSet[i] == 1 indicates that i was chosen
-    tt = t.stop();
-    auto size_f = [&](size_t i) { return (MaximalIndependentSet[i] == 1); };
-    auto size_imap =
-        pbbslib::make_sequence<size_t>(G.n, size_f);
-    if (P.getOptionValue("-stats")) {
-      std::cout << "MaximalIndependentSet size: " << pbbslib::reduce_add(size_imap) << "\n";
+    // Code below looks duplicated; this is because the return types of specfor
+    // and rootset are different
+    if (spec_for) {
+        timer t;
+        t.start();
+        auto MaximalIndependentSet =
+            MaximalIndependentSet_spec_for::MaximalIndependentSet(G);
+        // in spec_for, MaximalIndependentSet[i] == 1 indicates that i was
+        // chosen
+        tt = t.stop();
+        auto size_f = [&](size_t i) { return (MaximalIndependentSet[i] == 1); };
+        auto size_imap = pbbslib::make_sequence<size_t>(G.n, size_f);
+        if (P.getOptionValue("-stats")) {
+            std::cout << "MaximalIndependentSet size: "
+                      << pbbslib::reduce_add(size_imap) << "\n";
+        }
+        if (P.getOptionValue("-verify")) {
+            verify_MaximalIndependentSet(G, size_imap);
+        }
+    } else {
+        timer t;
+        t.start();
+        auto MaximalIndependentSet =
+            MaximalIndependentSet_rootset::MaximalIndependentSet(G);
+        tt = t.stop();
+        auto size_f = [&](size_t i) { return MaximalIndependentSet[i]; };
+        auto size_imap = pbbslib::make_sequence<size_t>(G.n, size_f);
+        if (P.getOptionValue("-stats")) {
+            std::cout << "MaximalIndependentSet size: "
+                      << pbbslib::reduce_add(size_imap) << "\n";
+        }
+        if (P.getOptionValue("-verify")) {
+            verify_MaximalIndependentSet(G, size_imap);
+        }
     }
-    if (P.getOptionValue("-verify")) {
-      verify_MaximalIndependentSet(G, size_imap);
-    }
-  } else {
-    timer t; t.start();
-    auto MaximalIndependentSet = MaximalIndependentSet_rootset::MaximalIndependentSet(G);
-    tt = t.stop();
-    auto size_f = [&](size_t i) { return MaximalIndependentSet[i]; };
-    auto size_imap =
-        pbbslib::make_sequence<size_t>(G.n, size_f);
-    if (P.getOptionValue("-stats")) {
-      std::cout << "MaximalIndependentSet size: " << pbbslib::reduce_add(size_imap) << "\n";
-    }
-    if (P.getOptionValue("-verify")) {
-      verify_MaximalIndependentSet(G, size_imap);
-    }
-  }
 
-  std::cout << "### Running Time: " << tt << std::endl;
-  return tt;
+    std::cout << "### Running Time: " << tt << std::endl;
+    return tt;
 }
 
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_main(gbbs::MaximalIndependentSet_runner, false);

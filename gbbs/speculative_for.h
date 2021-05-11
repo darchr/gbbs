@@ -29,34 +29,33 @@
 
 namespace gbbs {
 
-  template <class intT>
-  struct reservation {
+template <class intT> struct reservation {
     intT r;
     reservation() : r(std::numeric_limits<intT>::max()) {}
     void reserve(intT i) {
-      pbbslib::write_min(&r, i, [](intT left, intT right) { return left < right; });
+        pbbslib::write_min(&r, i,
+                           [](intT left, intT right) { return left < right; });
     }
     bool reserved() { return (r < std::numeric_limits<intT>::max()); }
     void reset() { r = std::numeric_limits<intT>::max(); }
     bool check(intT i) { return (r == i); }
     bool checkReset(intT i) {
-      if (r == i) {
-        r = std::numeric_limits<intT>::max();
-        return 1;
-      } else
-        return 0;
+        if (r == i) {
+            r = std::numeric_limits<intT>::max();
+            return 1;
+        } else
+            return 0;
     }
-  };
+};
 
-  template <class intT>
-  inline void reserveLoc(intT* x, intT i) {
+template <class intT> inline void reserveLoc(intT *x, intT i) {
     pbbslib::write_min<intT>(x, i);
-  }
+}
 
-  // granularity is some constant.
-  template <class intT, class S>
-  inline intT eff_for(S step, intT s, intT e, intT granularity, bool hasState = 1,
-                      long maxTries = std::numeric_limits<long>::max()) {
+// granularity is some constant.
+template <class intT, class S>
+inline intT eff_for(S step, intT s, intT e, intT granularity, bool hasState = 1,
+                    long maxTries = std::numeric_limits<long>::max()) {
     intT maxRoundSize = (e - s) / granularity + 1;
     intT currentRoundSize = maxRoundSize;
 
@@ -65,50 +64,53 @@ namespace gbbs {
     auto keep = sequence<bool>(maxRoundSize);
 
     intT round = 0;
-    intT numberDone = s;      // number of iterations done
-    intT numberKeep = 0;      // number of iterations to carry to next round
-    intT totalProcessed = 0;  // number done including wasted tries
+    intT numberDone = s;     // number of iterations done
+    intT numberKeep = 0;     // number of iterations to carry to next round
+    intT totalProcessed = 0; // number done including wasted tries
 
     while (numberDone < e) {
-      if (round++ > maxTries) {
-        std::cout << "speculative_for: too many iterations, increase maxTries"
-                  << "\n";
-        abort();
-      }
+        if (round++ > maxTries) {
+            std::cout
+                << "speculative_for: too many iterations, increase maxTries"
+                << "\n";
+            abort();
+        }
 
-      intT size = std::min(currentRoundSize, (intT)(e - numberDone));
-      totalProcessed += size;
+        intT size = std::min(currentRoundSize, (intT)(e - numberDone));
+        totalProcessed += size;
 
-      par_for(0, size, [&] (size_t i) {
-        if (i >= numberKeep) I[i] = numberDone + i;
-        keep[i] = step.reserve(I[i]);
-      });
+        par_for(0, size, [&](size_t i) {
+            if (i >= numberKeep)
+                I[i] = numberDone + i;
+            keep[i] = step.reserve(I[i]);
+        });
 
-      par_for(0, size, [&] (size_t i) {
-        if (keep[i]) keep[i] = !step.commit(I[i]);
-      });
+        par_for(0, size, [&](size_t i) {
+            if (keep[i])
+                keep[i] = !step.commit(I[i]);
+        });
 
-      // keep iterations that failed for next round. Written into Inext
-      numberKeep = pbbslib::pack_out(I.slice(0, size), keep, Inext.slice());
-//      seq.set_allocated(false);
-//      numberKeep = seq.size();
-      numberDone += size - numberKeep;
+        // keep iterations that failed for next round. Written into Inext
+        numberKeep = pbbslib::pack_out(I.slice(0, size), keep, Inext.slice());
+        //      seq.set_allocated(false);
+        //      numberKeep = seq.size();
+        numberDone += size - numberKeep;
 
-      std::swap(I, Inext);
+        std::swap(I, Inext);
 
-      // adjust round size based on number of failed attempts
-      if (float(numberKeep) / float(size) < .1) {
-        currentRoundSize = std::min(currentRoundSize * 2, maxRoundSize);
-      }
+        // adjust round size based on number of failed attempts
+        if (float(numberKeep) / float(size) < .1) {
+            currentRoundSize = std::min(currentRoundSize * 2, maxRoundSize);
+        }
     }
     return totalProcessed;
-  }
+}
 
-  template <class intT, class S>
-  inline intT speculative_for(S step, intT s, intT e, intT granularity,
-                              bool hasState = 1, long maxTries = -1) {
+template <class intT, class S>
+inline intT speculative_for(S step, intT s, intT e, intT granularity,
+                            bool hasState = 1, long maxTries = -1) {
     if (maxTries < 0) {
-      maxTries = 100 + 200 * granularity;
+        maxTries = 100 + 200 * granularity;
     }
     intT maxRoundSize = (e - s) / granularity + 1;
     intT currentRoundSize = maxRoundSize;
@@ -118,49 +120,52 @@ namespace gbbs {
     auto keep = sequence<bool>(maxRoundSize);
 
     intT round = 0;
-    intT numberDone = s;      // number of iterations done
-    intT numberKeep = 0;      // number of iterations to carry to next round
-    intT totalProcessed = 0;  // number done including wasted tries
+    intT numberDone = s;     // number of iterations done
+    intT numberKeep = 0;     // number of iterations to carry to next round
+    intT totalProcessed = 0; // number done including wasted tries
 
     while (numberDone < e) {
-      if (round++ > maxTries) {
-        std::cout << "speculative_for: too many iterations, increase maxTries"
-                  << "\n";
-        abort();
-      }
+        if (round++ > maxTries) {
+            std::cout
+                << "speculative_for: too many iterations, increase maxTries"
+                << "\n";
+            abort();
+        }
 
-      intT size = std::min(currentRoundSize, (intT)(e - numberDone));
-      totalProcessed += size;
+        intT size = std::min(currentRoundSize, (intT)(e - numberDone));
+        totalProcessed += size;
 
-      par_for(0, size, [&] (size_t i) {
-        if (i >= numberKeep) I[i] = numberDone + i;
-        keep[i] = step.reserve(I[i]);
-      });
+        par_for(0, size, [&](size_t i) {
+            if (i >= numberKeep)
+                I[i] = numberDone + i;
+            keep[i] = step.reserve(I[i]);
+        });
 
-      par_for(0, size, [&] (size_t i) {
-        if (keep[i]) keep[i] = !step.commit(I[i]);
-      });
+        par_for(0, size, [&](size_t i) {
+            if (keep[i])
+                keep[i] = !step.commit(I[i]);
+        });
 
-      // keep iterations that failed for next round. Written into Inext
-      numberKeep = pbbslib::pack_out(I.slice(0, size), keep, Inext.slice());
-//      numberKeep = pbbslib::pack_out(I.slice(0, size), keep, pbbslib::no_flag, Inext.slice());
-//      seq.set_allocated(false);
-//      numberKeep = seq.size();
-      numberDone += size - numberKeep;
+        // keep iterations that failed for next round. Written into Inext
+        numberKeep = pbbslib::pack_out(I.slice(0, size), keep, Inext.slice());
+        //      numberKeep = pbbslib::pack_out(I.slice(0, size), keep,
+        //      pbbslib::no_flag, Inext.slice()); seq.set_allocated(false);
+        //      numberKeep = seq.size();
+        numberDone += size - numberKeep;
 
-      std::swap(I, Inext);
+        std::swap(I, Inext);
 
-      // adjust round size based on number of failed attempts
-      if (float(numberKeep) / float(size) > .2)
-        currentRoundSize =
-            std::max(currentRoundSize / 2,
-                     std::max(maxRoundSize / 64 + 1, (intT)numberKeep));
-      else if (float(numberKeep) / float(size) < .1)
-        currentRoundSize = std::min(currentRoundSize * 2, maxRoundSize);
-      //    std::cout << size << " : " << numberKeep << " : " << numberDone <<
-      //    "\n";
+        // adjust round size based on number of failed attempts
+        if (float(numberKeep) / float(size) > .2)
+            currentRoundSize =
+                std::max(currentRoundSize / 2,
+                         std::max(maxRoundSize / 64 + 1, (intT)numberKeep));
+        else if (float(numberKeep) / float(size) < .1)
+            currentRoundSize = std::min(currentRoundSize * 2, maxRoundSize);
+        //    std::cout << size << " : " << numberKeep << " : " << numberDone <<
+        //    "\n";
     }
     return totalProcessed;
-  }
+}
 
-}  // namespace gbbs
+} // namespace gbbs

@@ -23,15 +23,14 @@
 
 #pragma once
 
-#include <limits.h>
 #include "bridge.h"
+#include <limits.h>
 
 namespace gbbs {
 #define LONG 1
 
 #ifndef NDEBUG
-#define debug(_body) \
-  _body;
+#define debug(_body) _body;
 #else
 #define debug(_body)
 #endif
@@ -70,8 +69,8 @@ typedef unsigned int uintE;
 #endif
 
 struct vertex_data {
-  size_t offset; // offset into the edges (static)
-  uintE degree; // possibly decreased by a (mutable) algorithm.
+    size_t offset; // offset into the edges (static)
+    uintE degree;  // possibly decreased by a (mutable) algorithm.
 };
 
 // edgemap_sparse_blocked granularity macro
@@ -100,4 +99,4 @@ typedef unsigned char uchar;
 #define compression bytepd
 #endif
 #endif
-}  // namespace gbbs
+} // namespace gbbs

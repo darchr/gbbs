@@ -39,33 +39,34 @@
 
 namespace gbbs {
 
-template <class Graph>
-double DeltaStepping_runner(Graph& G, commandLine P) {
-  uintE src = P.getOptionLongValue("-src", 0);
-  size_t num_buckets = P.getOptionLongValue("-nb", 32);
-  size_t delta = P.getOptionLongValue("-delta", 1);
+template <class Graph> double DeltaStepping_runner(Graph &G, commandLine P) {
+    uintE src = P.getOptionLongValue("-src", 0);
+    size_t num_buckets = P.getOptionLongValue("-nb", 32);
+    size_t delta = P.getOptionLongValue("-delta", 1);
 
-  std::cout << "### Application: DeltaStepping" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: -src = " << src << " -delta = " << delta << " -nb (num_buckets) = " << num_buckets << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+    std::cout << "### Application: DeltaStepping" << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: -src = " << src << " -delta = " << delta
+              << " -nb (num_buckets) = " << num_buckets << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  if (num_buckets != (((uintE)1) << pbbslib::log2_up(num_buckets))) {
-    std::cout << "Please specify a number of buckets that is a power of two"
-              << "\n";
-    exit(-1);
-  }
-  timer t; t.start();
-  DeltaStepping(G, src, delta, num_buckets);
-  double tt = t.stop();
+    if (num_buckets != (((uintE)1) << pbbslib::log2_up(num_buckets))) {
+        std::cout << "Please specify a number of buckets that is a power of two"
+                  << "\n";
+        exit(-1);
+    }
+    timer t;
+    t.start();
+    DeltaStepping(G, src, delta, num_buckets);
+    double tt = t.stop();
 
-  std::cout << "### Running Time: " << tt << std::endl;
-  return tt;
+    std::cout << "### Running Time: " << tt << std::endl;
+    return tt;
 }
 
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_weighted_main(gbbs::DeltaStepping_runner, false);

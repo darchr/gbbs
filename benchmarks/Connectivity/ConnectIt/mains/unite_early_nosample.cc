@@ -21,9 +21,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include "benchmarks/Connectivity/BFSCC/Connectivity.h"
 #include "benchmarks/Connectivity/ConnectIt/framework.h"
 #include "benchmarks/Connectivity/WorkEfficientSDB14/Connectivity.h"
-#include "benchmarks/Connectivity/BFSCC/Connectivity.h"
 #include "benchmarks/Connectivity/common.h"
 
 #include "bench_utils.h"
@@ -32,45 +32,50 @@
 namespace gbbs {
 namespace connectit {
 template <class Graph>
-void unite_early_find_compress(Graph& G, int rounds, commandLine& P, pbbs::sequence<parent>& correct) {
-  run_multiple_uf_alg<Graph, no_sampling, unite_early, find_compress>(G, rounds, correct, P);
+void unite_early_find_compress(Graph &G, int rounds, commandLine &P,
+                               pbbs::sequence<parent> &correct) {
+    run_multiple_uf_alg<Graph, no_sampling, unite_early, find_compress>(
+        G, rounds, correct, P);
 }
 
 template <class Graph>
-void unite_early_find_naive(Graph& G, int rounds, commandLine& P, pbbs::sequence<parent>& correct) {
-  run_multiple_uf_alg<Graph, no_sampling, unite_early, find_naive>(G, rounds, correct, P);
+void unite_early_find_naive(Graph &G, int rounds, commandLine &P,
+                            pbbs::sequence<parent> &correct) {
+    run_multiple_uf_alg<Graph, no_sampling, unite_early, find_naive>(
+        G, rounds, correct, P);
 }
 
 template <class Graph>
-void unite_early_find_atomic_split(Graph& G, int rounds, commandLine& P, pbbs::sequence<parent>& correct) {
-  run_multiple_uf_alg<Graph, no_sampling, unite_early, find_atomic_split>(G, rounds, correct, P);
+void unite_early_find_atomic_split(Graph &G, int rounds, commandLine &P,
+                                   pbbs::sequence<parent> &correct) {
+    run_multiple_uf_alg<Graph, no_sampling, unite_early, find_atomic_split>(
+        G, rounds, correct, P);
 }
 
 template <class Graph>
-void unite_early_find_atomic_halve(Graph& G, int rounds, commandLine& P, pbbs::sequence<parent>& correct) {
-  run_multiple_uf_alg<Graph, no_sampling, unite_early, find_atomic_halve>(G, rounds, correct, P);
+void unite_early_find_atomic_halve(Graph &G, int rounds, commandLine &P,
+                                   pbbs::sequence<parent> &correct) {
+    run_multiple_uf_alg<Graph, no_sampling, unite_early, find_atomic_halve>(
+        G, rounds, correct, P);
 }
 
-}
+} // namespace connectit
 
-template <class Graph>
-double Benchmark_runner(Graph& G, commandLine P) {
-  int rounds = P.getOptionIntValue("-r", 5);
+template <class Graph> double Benchmark_runner(Graph &G, commandLine P) {
+    int rounds = P.getOptionIntValue("-r", 5);
 
-  auto correct = pbbs::sequence<parent>();
-  if (P.getOptionValue("-check")) {
-    correct = workefficient_cc::CC(G, 0.2, false, true);
-    RelabelDet(correct);
-  }
-  run_tests(G, rounds, P, correct, connectit::unite_early_find_naive<Graph>,
-    {
-      connectit::unite_early_find_compress<Graph>,
-      connectit::unite_early_find_naive<Graph>,
-      connectit::unite_early_find_atomic_split<Graph>,
-      connectit::unite_early_find_atomic_halve<Graph>
-    });
-  return 1.0;
+    auto correct = pbbs::sequence<parent>();
+    if (P.getOptionValue("-check")) {
+        correct = workefficient_cc::CC(G, 0.2, false, true);
+        RelabelDet(correct);
+    }
+    run_tests(G, rounds, P, correct, connectit::unite_early_find_naive<Graph>,
+              {connectit::unite_early_find_compress<Graph>,
+               connectit::unite_early_find_naive<Graph>,
+               connectit::unite_early_find_atomic_split<Graph>,
+               connectit::unite_early_find_atomic_halve<Graph>});
+    return 1.0;
 }
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_symmetric_once_main(gbbs::Benchmark_runner, false);

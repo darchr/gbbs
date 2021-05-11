@@ -42,57 +42,60 @@
 namespace gbbs {
 
 template <template <class W> class vertex, class W>
-double MaximalMatching_runner(symmetric_graph<vertex, W>& G, commandLine P) {
-  std::cout << "### Application: CC (Connectivity)" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: (n/a)" << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+double MaximalMatching_runner(symmetric_graph<vertex, W> &G, commandLine P) {
+    std::cout << "### Application: CC (Connectivity)" << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: (n/a)" << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  assert(P.getOption("-s"));  // input graph must be symmetric
-  auto in_f = P.getOptionValue("-if");
-  if (in_f) {
-    auto S = gbbs_io::readStringFromFile(in_f);
-    auto Words = pbbs::tokenize(S, [] (const char c) { return pbbs::is_space(c); });
-    size_t ms = atol(Words[0]);
-    using edge = std::tuple<uintE, uintE>;
-    auto matching = sequence<edge>(ms);
-    par_for(0, ms, pbbslib::kSequentialForThreshold, [&] (size_t i) {
-      matching[i] =
-          std::make_tuple(atol(Words[1 + 2 * i]), atol(Words[2 * (i + 1)]));
-    });
-    verify_matching(G, matching);
-    exit(0);
-  }
-  timer t; t.start();
-  auto matching = MaximalMatching(G);
-  double tt = t.stop();
-
-  std::cout << "### Running Time: " << tt << std::endl;
-
-  // Note that as we mutate the graph by packing out edges, we can't verify that
-  // the returned set of edges is a valid maximal matching on the graph
-  // currently in-memory. Instead, we write the matching to disk and read it
-  // back in to verify correctness.
-  auto of = P.getOptionValue("-of");
-  if (of) {
-    std::cout << "outfile is = " << of << "\n";
-    std::ofstream out(of, std::ofstream::out);
-    out << matching.size() << "\n";
-    for (size_t i = 0; i < matching.size(); i++) {
-      auto e = matching[i];
-      out << (std::get<0>(e) & mm::VAL_MASK) << " " << std::get<1>(e) << "\n";
+    assert(P.getOption("-s")); // input graph must be symmetric
+    auto in_f = P.getOptionValue("-if");
+    if (in_f) {
+        auto S = gbbs_io::readStringFromFile(in_f);
+        auto Words =
+            pbbs::tokenize(S, [](const char c) { return pbbs::is_space(c); });
+        size_t ms = atol(Words[0]);
+        using edge = std::tuple<uintE, uintE>;
+        auto matching = sequence<edge>(ms);
+        par_for(0, ms, pbbslib::kSequentialForThreshold, [&](size_t i) {
+            matching[i] = std::make_tuple(atol(Words[1 + 2 * i]),
+                                          atol(Words[2 * (i + 1)]));
+        });
+        verify_matching(G, matching);
+        exit(0);
     }
-    out.close();
-  }
-  // Maximal-matching mutates the underlying graph (unless it is copied, which
-  // we don't do to prevent memory issues), so we make sure the algorithm is run
-  // exactly once.
-  exit(0);
+    timer t;
+    t.start();
+    auto matching = MaximalMatching(G);
+    double tt = t.stop();
+
+    std::cout << "### Running Time: " << tt << std::endl;
+
+    // Note that as we mutate the graph by packing out edges, we can't verify
+    // that the returned set of edges is a valid maximal matching on the graph
+    // currently in-memory. Instead, we write the matching to disk and read it
+    // back in to verify correctness.
+    auto of = P.getOptionValue("-of");
+    if (of) {
+        std::cout << "outfile is = " << of << "\n";
+        std::ofstream out(of, std::ofstream::out);
+        out << matching.size() << "\n";
+        for (size_t i = 0; i < matching.size(); i++) {
+            auto e = matching[i];
+            out << (std::get<0>(e) & mm::VAL_MASK) << " " << std::get<1>(e)
+                << "\n";
+        }
+        out.close();
+    }
+    // Maximal-matching mutates the underlying graph (unless it is copied, which
+    // we don't do to prevent memory issues), so we make sure the algorithm is
+    // run exactly once.
+    exit(0);
 }
 
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_symmetric_main(gbbs::MaximalMatching_runner, true);

@@ -24,27 +24,26 @@
 #include "Connectivity.h"
 
 namespace gbbs {
-template <class Graph>
-double CC_runner(Graph& G, commandLine P) {
-  std::cout << "### Application: CC (Connectivity)" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+template <class Graph> double CC_runner(Graph &G, commandLine P) {
+    std::cout << "### Application: CC (Connectivity)" << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  timer t;
-  t.start();
-  if (P.getOptionValue("-permute")) {
-    auto components = labelprop_cc::CC</*use_permutation=*/true>(G);
-  } else {
-    auto components = labelprop_cc::CC</*use_permutation=*/false>(G);
-  }
-  double tt = t.stop();
-  std::cout << "### Running Time: " << tt << std::endl;
+    timer t;
+    t.start();
+    if (P.getOptionValue("-permute")) {
+        auto components = labelprop_cc::CC</*use_permutation=*/true>(G);
+    } else {
+        auto components = labelprop_cc::CC</*use_permutation=*/false>(G);
+    }
+    double tt = t.stop();
+    std::cout << "### Running Time: " << tt << std::endl;
 
-  return tt;
+    return tt;
 }
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_main(gbbs::CC_runner, false);

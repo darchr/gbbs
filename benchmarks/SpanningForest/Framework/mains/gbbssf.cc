@@ -21,11 +21,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include "benchmarks/SpanningForest/BFSSF/SpanningForest.h"
 #include "benchmarks/SpanningForest/Framework/framework.h"
 #include "benchmarks/SpanningForest/SDB14/SpanningForest.h"
-#include "benchmarks/SpanningForest/BFSSF/SpanningForest.h"
-#include "benchmarks/SpanningForest/common.h"
 #include "benchmarks/SpanningForest/check.h"
+#include "benchmarks/SpanningForest/common.h"
 
 #include "bench_utils.h"
 
@@ -33,36 +33,34 @@ namespace gbbs {
 namespace connectit {
 
 template <class Graph>
-double t_gbbs_sf(Graph& G, commandLine P, pbbs::sequence<edge>& correct) {
-  time(t, auto edges = workefficient_sf::SpanningForest(G));
-  if (P.getOptionValue("-check")) {
-    spanning_forest::check_spanning_forest(G.n, correct, edges);
-  }
-  return t;
+double t_gbbs_sf(Graph &G, commandLine P, pbbs::sequence<edge> &correct) {
+    time(t, auto edges = workefficient_sf::SpanningForest(G));
+    if (P.getOptionValue("-check")) {
+        spanning_forest::check_spanning_forest(G.n, correct, edges);
+    }
+    return t;
 }
 
 template <class Graph>
-void gbbssf_nosample(Graph& G, int rounds, commandLine& P, pbbs::sequence<edge>& correct) {
-  run_multiple(G, rounds, correct, "gbbs_sf", P, t_gbbs_sf<Graph>);
+void gbbssf_nosample(Graph &G, int rounds, commandLine &P,
+                     pbbs::sequence<edge> &correct) {
+    run_multiple(G, rounds, correct, "gbbs_sf", P, t_gbbs_sf<Graph>);
 }
 
-}
+} // namespace connectit
 
-template <class Graph>
-double Benchmark_runner(Graph& G, commandLine P) {
-  int test_num = P.getOptionIntValue("-t", -1);
-  int rounds = P.getOptionIntValue("-r", 5);
+template <class Graph> double Benchmark_runner(Graph &G, commandLine P) {
+    int test_num = P.getOptionIntValue("-t", -1);
+    int rounds = P.getOptionIntValue("-r", 5);
 
-  auto correct = pbbs::sequence<edge>();
-  if (P.getOptionValue("-check")) {
-    correct = bfs_sf::SpanningForestDet(G);
-  }
-  run_tests(G, rounds, P, correct, connectit::gbbssf_nosample<Graph>,
-    {
-      connectit::gbbssf_nosample<Graph>
-    });
-  return 1.0;
+    auto correct = pbbs::sequence<edge>();
+    if (P.getOptionValue("-check")) {
+        correct = bfs_sf::SpanningForestDet(G);
+    }
+    run_tests(G, rounds, P, correct, connectit::gbbssf_nosample<Graph>,
+              {connectit::gbbssf_nosample<Graph>});
+    return 1.0;
 }
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_symmetric_once_main(gbbs::Benchmark_runner, false);

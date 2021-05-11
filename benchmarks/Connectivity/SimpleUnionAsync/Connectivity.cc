@@ -36,31 +36,29 @@
 
 namespace gbbs {
 
-template <class Graph>
-double CC_runner(Graph& G, commandLine P) {
-  std::cout << "### Application: CC (Connectivity)" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+template <class Graph> double CC_runner(Graph &G, commandLine P) {
+    std::cout << "### Application: CC (Connectivity)" << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  timer t;
-  t.start();
-  auto components = gbbs::simple_union_find::SimpleUnionAsync(G);
-  double tt = t.stop();
-  std::cout << "### Running Time: " << tt << std::endl;
+    timer t;
+    t.start();
+    auto components = gbbs::simple_union_find::SimpleUnionAsync(G);
+    double tt = t.stop();
+    std::cout << "### Running Time: " << tt << std::endl;
 
-  if (P.getOption("-stats")) {
-    auto cc_f = [&](size_t i) { return components[i]; };
-    auto cc_im =
-        pbbslib::make_sequence<uintE>(G.n, cc_f);
-    gbbs::simple_union_find::num_cc(cc_im);
-    gbbs::simple_union_find::largest_cc(cc_im);
-  }
-  return tt;
+    if (P.getOption("-stats")) {
+        auto cc_f = [&](size_t i) { return components[i]; };
+        auto cc_im = pbbslib::make_sequence<uintE>(G.n, cc_f);
+        gbbs::simple_union_find::num_cc(cc_im);
+        gbbs::simple_union_find::largest_cc(cc_im);
+    }
+    return tt;
 }
 
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_symmetric_main(gbbs::CC_runner, false);

@@ -10,7 +10,7 @@
 #if defined(_WIN32)
 #include <Windows.h>
 
-#elif defined(__unix__) || defined(__unix) || defined(unix) || \
+#elif defined(__unix__) || defined(__unix) || defined(unix) ||                 \
     (defined(__APPLE__) && defined(__MACH__))
 #include <sys/param.h>
 #include <sys/types.h>
@@ -28,4 +28,4 @@ namespace pbbs {
  * Returns the size of physical memory (RAM) in bytes.
  */
 size_t getMemorySize();
-}  // namespace pbbs
+} // namespace pbbs

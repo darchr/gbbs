@@ -35,36 +35,40 @@
 
 namespace gbbs {
 
-template <class Graph>
-double KTruss_runner(Graph& G, commandLine P) {
-  size_t num_buckets = P.getOptionLongValue("-nb", 16);
-  bool no_buckets = P.getOption("-no_buckets");
-  std::cout << "### Application: KTruss" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: -nb (num_buckets) = " << num_buckets << " -no_buckets = " << no_buckets << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
-  if (num_buckets != static_cast<size_t>((1 << pbbslib::log2_up(num_buckets)))) {
-    std::cout << "Number of buckets must be a power of two."
-              << "\n";
-    exit(-1);
-  }
-  assert(P.getOption("-s"));
+template <class Graph> double KTruss_runner(Graph &G, commandLine P) {
+    size_t num_buckets = P.getOptionLongValue("-nb", 16);
+    bool no_buckets = P.getOption("-no_buckets");
+    std::cout << "### Application: KTruss" << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: -nb (num_buckets) = " << num_buckets
+              << " -no_buckets = " << no_buckets << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
+    if (num_buckets !=
+        static_cast<size_t>((1 << pbbslib::log2_up(num_buckets)))) {
+        std::cout << "Number of buckets must be a power of two."
+                  << "\n";
+        exit(-1);
+    }
+    assert(P.getOption("-s"));
 
-  // runs the fetch-and-add based implementation if set.
-  timer t; t.start();
-  //auto trusses = (!no_buckets) ? KTruss(G, num_buckets) : KTruss_no_bucket(G);
-  KTruss_ht(G, num_buckets);
-  double tt = t.stop();
+    // runs the fetch-and-add based implementation if set.
+    timer t;
+    t.start();
+    // auto trusses = (!no_buckets) ? KTruss(G, num_buckets) :
+    // KTruss_no_bucket(G);
+    KTruss_ht(G, num_buckets);
+    double tt = t.stop();
 
-  std::cout << "### Running Time: " << tt << std::endl;
+    std::cout << "### Running Time: " << tt << std::endl;
 
-  exit(0); // Note that running k-truss mutates the input graph to enable the packing optimization.
-  return tt;
+    exit(0); // Note that running k-truss mutates the input graph to enable the
+             // packing optimization.
+    return tt;
 }
 
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_symmetric_main(gbbs::KTruss_runner, false);

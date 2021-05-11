@@ -22,58 +22,55 @@
 // SOFTWARE.
 
 #include "SpanningForest.h"
-#include "gbbs/gbbs.h"
 #include "benchmarks/SpanningForest/BFSSF/SpanningForest.h"
 #include "benchmarks/SpanningForest/check.h"
+#include "gbbs/gbbs.h"
 
 namespace gbbs {
-template <class Graph>
-double SF_runner(Graph& G, commandLine P) {
-  std::cout << "### Application: SpanningForest (LiuTarjan-based)" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+template <class Graph> double SF_runner(Graph &G, commandLine P) {
+    std::cout << "### Application: SpanningForest (LiuTarjan-based)"
+              << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  timer t;
-  t.start();
-  auto n = G.n;
-  auto parents = pbbs::sequence<parent>(n, [&] (size_t i) { return i; });
-  auto edges = pbbs::sequence<edge>(n, empty_edge);
+    timer t;
+    t.start();
+    auto n = G.n;
+    auto parents = pbbs::sequence<parent>(n, [&](size_t i) { return i; });
+    auto edges = pbbs::sequence<edge>(n, empty_edge);
 
-  auto opt_connect = lt::template get_connect_function<parent_connect>();
-  auto opt_update = lt::template get_update_function<root_update>();
-  auto opt_shortcut = lt::template get_shortcut_function<full_shortcut>();
+    auto opt_connect = lt::template get_connect_function<parent_connect>();
+    auto opt_update = lt::template get_update_function<root_update>();
+    auto opt_shortcut = lt::template get_shortcut_function<full_shortcut>();
 
-  auto alg = lt::LiuTarjanAlgorithm<
-                decltype(opt_connect),
-                parent_connect,
-                decltype(opt_update),
-                root_update,
-                decltype(opt_shortcut),
-                full_shortcut,
-                Graph>(G, n, opt_connect, opt_update, opt_shortcut);
+    auto alg =
+        lt::LiuTarjanAlgorithm<decltype(opt_connect), parent_connect,
+                               decltype(opt_update), root_update,
+                               decltype(opt_shortcut), full_shortcut, Graph>(
+            G, n, opt_connect, opt_update, opt_shortcut);
 
-  alg.initialize(parents, edges);
+    alg.initialize(parents, edges);
 
-  alg.template compute_spanning_forest<no_sampling>(parents, edges);
+    alg.template compute_spanning_forest<no_sampling>(parents, edges);
 
-  auto filtered_edges = pbbs::filter(edges, [&] (const edge& e) {
-    return e != empty_edge;
-  });
+    auto filtered_edges =
+        pbbs::filter(edges, [&](const edge &e) { return e != empty_edge; });
 
-  std::cout << "sf has: " << filtered_edges.size() << " many edges" << std::endl;
-  double tt = t.stop();
-  std::cout << "### Running Time: " << tt << std::endl;
+    std::cout << "sf has: " << filtered_edges.size() << " many edges"
+              << std::endl;
+    double tt = t.stop();
+    std::cout << "### Running Time: " << tt << std::endl;
 
-  if (P.getOptionValue("-check")) {
-    auto bfs_edges = bfs_sf::SpanningForestDet(G);
-    spanning_forest::check_spanning_forest(G.n, bfs_edges, filtered_edges);
-  }
+    if (P.getOptionValue("-check")) {
+        auto bfs_edges = bfs_sf::SpanningForestDet(G);
+        spanning_forest::check_spanning_forest(G.n, bfs_edges, filtered_edges);
+    }
 
-  return tt;
+    return tt;
 }
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_main(gbbs::SF_runner, false);

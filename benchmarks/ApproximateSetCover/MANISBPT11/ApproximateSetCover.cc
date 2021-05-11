@@ -34,32 +34,32 @@
 
 namespace gbbs {
 
-template <class Graph>
-double SetCover_runner(Graph& G, commandLine P) {
-  size_t num_buckets = P.getOptionLongValue("-nb", 128);
+template <class Graph> double SetCover_runner(Graph &G, commandLine P) {
+    size_t num_buckets = P.getOptionLongValue("-nb", 128);
 
-  std::cout << "### Application: Approximate Set Cover" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: -nb (num_buckets) = " << num_buckets << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+    std::cout << "### Application: Approximate Set Cover" << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: -nb (num_buckets) = " << num_buckets << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  timer t; t.start();
-  auto cover = SetCover(G, num_buckets);
-  cover.del();
-  double tt = t.stop();
+    timer t;
+    t.start();
+    auto cover = SetCover(G, num_buckets);
+    cover.del();
+    double tt = t.stop();
 
-  std::cout << "### Running Time: " << tt << std::endl;
+    std::cout << "### Running Time: " << tt << std::endl;
 
-  // Set-cover mutates the underlying graph (unless it is copied, which
-  // we don't do to prevent memory issues), so we make sure the algorithm is run
-  // exactly once.
-  exit(0);
-  return tt;
+    // Set-cover mutates the underlying graph (unless it is copied, which
+    // we don't do to prevent memory issues), so we make sure the algorithm is
+    // run exactly once.
+    exit(0);
+    return tt;
 }
 
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_symmetric_main(gbbs::SetCover_runner, true)

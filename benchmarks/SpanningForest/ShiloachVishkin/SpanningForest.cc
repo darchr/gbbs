@@ -33,33 +33,33 @@
 //     -stats : print the #ccs, and the #vertices in the largest cc
 
 #include "SpanningForest.h"
-#include "gbbs/gbbs.h"
-#include "benchmarks/SpanningForest/check.h"
 #include "benchmarks/SpanningForest/BFSSF/SpanningForest.h"
+#include "benchmarks/SpanningForest/check.h"
+#include "gbbs/gbbs.h"
 
 namespace gbbs {
-template <class Graph>
-double SpanningForest_runner(Graph& G, commandLine P) {
-  std::cout << "### Application: SpanningForest (Shiloach-Vishkin)" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
-  assert(P.getOption("-s"));
-  timer t;
-  t.start();
-  auto edges = shiloachvishkin_sf::SpanningForest(G);
-  double tt = t.stop();
-  std::cout << "### Running Time: " << tt << std::endl;
+template <class Graph> double SpanningForest_runner(Graph &G, commandLine P) {
+    std::cout << "### Application: SpanningForest (Shiloach-Vishkin)"
+              << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
+    assert(P.getOption("-s"));
+    timer t;
+    t.start();
+    auto edges = shiloachvishkin_sf::SpanningForest(G);
+    double tt = t.stop();
+    std::cout << "### Running Time: " << tt << std::endl;
 
-  if (P.getOptionValue("-check")) {
-    auto edges_det = bfs_sf::SpanningForestDet(G);
-    spanning_forest::check_spanning_forest(G.n, edges, edges_det);
-  }
+    if (P.getOptionValue("-check")) {
+        auto edges_det = bfs_sf::SpanningForestDet(G);
+        spanning_forest::check_spanning_forest(G.n, edges, edges_det);
+    }
 
-  return tt;
+    return tt;
 }
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_main(gbbs::SpanningForest_runner, false);

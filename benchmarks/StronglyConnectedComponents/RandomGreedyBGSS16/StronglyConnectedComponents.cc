@@ -22,8 +22,8 @@
 // SOFTWARE.
 
 // Usage:
-// numactl -i all ./StronglyConnectedComponents -beta 1.5 -rounds 2 -s -m twitter_J
-// flags:
+// numactl -i all ./StronglyConnectedComponents -beta 1.5 -rounds 2 -s -m
+// twitter_J flags:
 //   optional:
 //     -m : indicate that the graph should be mmap'd
 //     -c : indicate that the graph is compressed
@@ -36,32 +36,34 @@
 
 namespace gbbs {
 template <class Graph>
-double StronglyConnectedComponents_runner(Graph& G, commandLine P) {
-  double beta = P.getOptionDoubleValue("-beta", 1.1);
-  std::cout << "### Application: StronglyConnectedComponents (Strongly Connected Components)" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: -beta = " << beta << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+double StronglyConnectedComponents_runner(Graph &G, commandLine P) {
+    double beta = P.getOptionDoubleValue("-beta", 1.1);
+    std::cout << "### Application: StronglyConnectedComponents (Strongly "
+                 "Connected Components)"
+              << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: -beta = " << beta << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  if (P.getOption("-s")) {
-    std::cout << "SCC should be run on a directed graph;" << std::endl;
-    exit(0);
-  }
-  timer scc_t;
-  scc_t.start();
-  auto labels = StronglyConnectedComponents(G, beta);
-  double tt = scc_t.stop();
-  if (P.getOption("-stats")) {
-    num_scc(labels);
-    scc_stats(labels);
-  }
+    if (P.getOption("-s")) {
+        std::cout << "SCC should be run on a directed graph;" << std::endl;
+        exit(0);
+    }
+    timer scc_t;
+    scc_t.start();
+    auto labels = StronglyConnectedComponents(G, beta);
+    double tt = scc_t.stop();
+    if (P.getOption("-stats")) {
+        num_scc(labels);
+        scc_stats(labels);
+    }
 
-  std::cout << "### Running Time: " << tt << std::endl;
-  return tt;
+    std::cout << "### Running Time: " << tt << std::endl;
+    return tt;
 }
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_main(gbbs::StronglyConnectedComponents_runner, false);

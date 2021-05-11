@@ -28,26 +28,24 @@
 namespace gbbs {
 namespace gbbs_io {
 
-template <class E>
-struct pairFirstCmp {
-  bool operator()(std::pair<uintE, E> a, std::pair<uintE, E> b) {
-    return a.first < b.first;
-  }
+template <class E> struct pairFirstCmp {
+    bool operator()(std::pair<uintE, E> a, std::pair<uintE, E> b) {
+        return a.first < b.first;
+    }
 };
 
-template <class E>
-struct getFirst {
-  uintE operator()(std::pair<uintE, E> a) { return a.first; }
+template <class E> struct getFirst {
+    uintE operator()(std::pair<uintE, E> a) { return a.first; }
 };
 
 // returns a pointer and a length
-std::pair<char*, size_t> mmapStringFromFile(const char* filename);
+std::pair<char *, size_t> mmapStringFromFile(const char *filename);
 
-void unmmap(const char* bytes, size_t bytes_size);
+void unmmap(const char *bytes, size_t bytes_size);
 
-sequence<char> readStringFromFile(const char* fileName);
+sequence<char> readStringFromFile(const char *fileName);
 
-std::tuple<char*, size_t> read_o_direct(const char* fname);
+std::tuple<char *, size_t> read_o_direct(const char *fname);
 
-}  // namespace gbbs_io
-}  // namespace gbbs
+} // namespace gbbs_io
+} // namespace gbbs

@@ -31,75 +31,74 @@
 
 namespace pbbslib {
 
-  constexpr size_t kDynArrMinBktSize = 2000;
+constexpr size_t kDynArrMinBktSize = 2000;
 
-  template <class E>
-  struct dyn_arr {
-    E* A;
+template <class E> struct dyn_arr {
+    E *A;
     size_t size;
     size_t capacity;
     bool alloc;
 
     dyn_arr() : A(NULL), size(0), capacity(0), alloc(false) {}
-    dyn_arr(size_t s) : size(0), capacity(s), alloc(true) { A = pbbslib::new_array_no_init<E>(s); }
-    dyn_arr(E* _A, long _size, long _capacity, bool _alloc)
+    dyn_arr(size_t s) : size(0), capacity(s), alloc(true) {
+        A = pbbslib::new_array_no_init<E>(s);
+    }
+    dyn_arr(E *_A, long _size, long _capacity, bool _alloc)
         : A(_A), size(_size), capacity(_capacity), alloc(_alloc) {}
 
     void del() {
-      if (alloc) {
-        pbbslib::free_array(A);
-        alloc = false;
-      }
+        if (alloc) {
+            pbbslib::free_array(A);
+            alloc = false;
+        }
     }
 
     pbbs::sequence<E> to_seq() {
-      assert(A);
-      auto ret = pbbs::sequence<E>(A, size);
-      size = 0;
-      A = nullptr;
-      return std::move(ret);
+        assert(A);
+        auto ret = pbbs::sequence<E>(A, size);
+        size = 0;
+        A = nullptr;
+        return std::move(ret);
     }
 
     void clear() { size = 0; }
 
     inline void resize(size_t n) {
-      if (n + size > capacity) {
-        size_t new_capacity = std::max(2 * (n + size), (size_t)kDynArrMinBktSize);
-        E* nA = pbbslib::new_array_no_init<E>(new_capacity);
-        parallel_for(0, size, [&] (size_t i) { nA[i] = A[i]; });
-        if (alloc) {
-          pbbslib::free_array(A);
+        if (n + size > capacity) {
+            size_t new_capacity =
+                std::max(2 * (n + size), (size_t)kDynArrMinBktSize);
+            E *nA = pbbslib::new_array_no_init<E>(new_capacity);
+            parallel_for(0, size, [&](size_t i) { nA[i] = A[i]; });
+            if (alloc) {
+                pbbslib::free_array(A);
+            }
+            A = nA;
+            capacity = new_capacity;
+            alloc = true;
         }
-        A = nA;
-        capacity = new_capacity;
-        alloc = true;
-      }
     }
 
     inline void insert(E val, size_t pos) { A[size + pos] = val; }
 
     inline void push_back(E val) {
-      A[size] = val;
-      size++;
+        A[size] = val;
+        size++;
     }
 
-    template <class F>
-    void map(F f) {
-      parallel_for(0, size, [&] (size_t i) { f(A[i]); });
+    template <class F> void map(F f) {
+        parallel_for(0, size, [&](size_t i) { f(A[i]); });
     }
 
-    template <class F>
-    inline void copyIn(F& f, size_t n) {
-      resize(n);
-      parallel_for(0, n, [&] (size_t i) { A[size + i] = f[i]; });
-      size += n;
+    template <class F> inline void copyIn(F &f, size_t n) {
+        resize(n);
+        parallel_for(0, n, [&](size_t i) { A[size + i] = f[i]; });
+        size += n;
     }
 
-    template <class F>
-    inline void copyInF(F f, size_t n) {
-      resize(n);
-      parallel_for(0, n, [&] (size_t i) { A[size + i] = f(i); });
-      size += n;
+    template <class F> inline void copyInF(F f, size_t n) {
+        resize(n);
+        parallel_for(0, n, [&](size_t i) { A[size + i] = f(i); });
+        size += n;
     }
-  };
+};
 }; // namespace pbbslib

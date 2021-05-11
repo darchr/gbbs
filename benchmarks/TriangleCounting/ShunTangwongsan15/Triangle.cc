@@ -35,37 +35,38 @@
 
 namespace gbbs {
 
-template <class Graph>
-double Triangle_runner(Graph& G, commandLine P) {
-  auto ordering = P.getOptionValue("-ordering", "degree");
-  std::cout << "### Application: Triangle Counting" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: ordering=" << ordering << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
-  assert(P.getOption("-s"));
-  size_t count = 0;
-  auto f = [&] (uintE u, uintE v, uintE w) { };
-  timer t; t.start();
-  count = Triangle(G, f, ordering, P);
-  double tt = t.stop();
-  if (P.getOption("-stats")) {
-    auto wedge_im_f = [&](size_t i) {
-      size_t deg = G.get_vertex(i).out_degree();
-      return (deg * deg - 1) / 2;
-    };
-    auto wedge_im = pbbslib::make_sequence<size_t>(G.n, wedge_im_f);
-    size_t n_wedges = pbbslib::reduce_add(wedge_im);
-    std::cout << "### n_wedges = " << n_wedges << "\n";
-    std::cout << "### triangle density = " << ((3.0 * count) / n_wedges) << "\n";
-  }
+template <class Graph> double Triangle_runner(Graph &G, commandLine P) {
+    auto ordering = P.getOptionValue("-ordering", "degree");
+    std::cout << "### Application: Triangle Counting" << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: ordering=" << ordering << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
+    assert(P.getOption("-s"));
+    size_t count = 0;
+    auto f = [&](uintE u, uintE v, uintE w) {};
+    timer t;
+    t.start();
+    count = Triangle(G, f, ordering, P);
+    double tt = t.stop();
+    if (P.getOption("-stats")) {
+        auto wedge_im_f = [&](size_t i) {
+            size_t deg = G.get_vertex(i).out_degree();
+            return (deg * deg - 1) / 2;
+        };
+        auto wedge_im = pbbslib::make_sequence<size_t>(G.n, wedge_im_f);
+        size_t n_wedges = pbbslib::reduce_add(wedge_im);
+        std::cout << "### n_wedges = " << n_wedges << "\n";
+        std::cout << "### triangle density = " << ((3.0 * count) / n_wedges)
+                  << "\n";
+    }
 
-  std::cout << "### Running Time: " << tt << std::endl;
-  return tt;
+    std::cout << "### Running Time: " << tt << std::endl;
+    return tt;
 }
 
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_symmetric_main(gbbs::Triangle_runner, false);

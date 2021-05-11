@@ -34,29 +34,32 @@
 #include "CoSimRank.h"
 
 namespace gbbs {
-template <class Graph>
-double CoSimRank_runner(Graph& G, commandLine P) {
-  std::cout << "### Application: CoSimRank" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: -eps = " << P.getOptionDoubleValue("-eps", 0.000001) << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+template <class Graph> double CoSimRank_runner(Graph &G, commandLine P) {
+    std::cout << "### Application: CoSimRank" << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: -eps = "
+              << P.getOptionDoubleValue("-eps", 0.000001) << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  timer t; t.start();
-  double eps = P.getOptionDoubleValue("-eps", 0.000001);
-  size_t iters = P.getOptionLongValue("-iters", 100);
-  double c = P.getOptionDoubleValue("-cons", 0.85);
-  uintE u = P.getOptionLongValue("-u", 0);
-  uintE v = P.getOptionLongValue("-v", 1);
-  if (P.getOptionValue("-em")) CoSimRank_edgeMap(G, u, v, eps, c, iters);
-  else CoSimRank(G, u, v, eps, c, iters);
-  double tt = t.stop();
+    timer t;
+    t.start();
+    double eps = P.getOptionDoubleValue("-eps", 0.000001);
+    size_t iters = P.getOptionLongValue("-iters", 100);
+    double c = P.getOptionDoubleValue("-cons", 0.85);
+    uintE u = P.getOptionLongValue("-u", 0);
+    uintE v = P.getOptionLongValue("-v", 1);
+    if (P.getOptionValue("-em"))
+        CoSimRank_edgeMap(G, u, v, eps, c, iters);
+    else
+        CoSimRank(G, u, v, eps, c, iters);
+    double tt = t.stop();
 
-  std::cout << "### Running Time: " << tt << std::endl;
-  return tt;
+    std::cout << "### Running Time: " << tt << std::endl;
+    return tt;
 }
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_main(gbbs::CoSimRank_runner, false);

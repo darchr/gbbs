@@ -37,31 +37,33 @@
 
 namespace gbbs {
 
-template <class Graph>
-double LDD_runner(Graph& G, commandLine P) {
-  double beta = P.getOptionDoubleValue("-beta", 0.2);
-  bool permute = P.getOption("-permute");
-  std::cout << "### Application: LDD (Low-Diameter Decomposition)" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: -beta = " << beta << " -permute = " << permute << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
-  assert(P.getOption("-s"));
-  timer t; t.start();
-  auto ldd = LDD(G, beta, permute);
-  double tt = t.stop();
-  if (P.getOption("-stats")) {
-    ldd_utils::num_clusters(ldd);
-    ldd_utils::cluster_sizes(ldd);
-    ldd_utils::num_intercluster_edges(G, ldd);
-  }
+template <class Graph> double LDD_runner(Graph &G, commandLine P) {
+    double beta = P.getOptionDoubleValue("-beta", 0.2);
+    bool permute = P.getOption("-permute");
+    std::cout << "### Application: LDD (Low-Diameter Decomposition)"
+              << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: -beta = " << beta << " -permute = " << permute
+              << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
+    assert(P.getOption("-s"));
+    timer t;
+    t.start();
+    auto ldd = LDD(G, beta, permute);
+    double tt = t.stop();
+    if (P.getOption("-stats")) {
+        ldd_utils::num_clusters(ldd);
+        ldd_utils::cluster_sizes(ldd);
+        ldd_utils::num_intercluster_edges(G, ldd);
+    }
 
-  std::cout << "### Running Time: " << tt << std::endl;
-  return tt;
+    std::cout << "### Running Time: " << tt << std::endl;
+    return tt;
 }
 
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_main(gbbs::LDD_runner, false);

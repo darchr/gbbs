@@ -34,45 +34,53 @@
 #include "MaximalMatching.h"
 
 #include <fstream>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 #include "gbbs/gbbs.h"
 
 namespace gbbs {
 
-void print_stats(commandLine& P, size_t query_cutoff, size_t max_query_length, size_t total_work, double fraction_covered, double rt) {
-  std::cout << "{" << std::endl;
-  std::cout << "  \"test_type\": \"Yoshida matching result\"," << std::endl;
-  std::cout << "  \"graph\" : \"" << P.getArgument(0) << "\"," << std::endl;
-  std::cout << "  \"query_cutoff\" : " << query_cutoff << "," << std::endl;
-  std::cout << "  \"time\" : " << std::setprecision(10) << rt << "," << std::endl;
-  std::cout << "  \"max_query_length\" : " << max_query_length << "," << std::endl;
-  std::cout << "  \"total_work\" : " << total_work << "," << std::endl;
-  std::cout << "  \"fraction_covered\" : " << fraction_covered << std::endl;
-  std::cout << "}" << std::endl;
+void print_stats(commandLine &P, size_t query_cutoff, size_t max_query_length,
+                 size_t total_work, double fraction_covered, double rt) {
+    std::cout << "{" << std::endl;
+    std::cout << "  \"test_type\": \"Yoshida matching result\"," << std::endl;
+    std::cout << "  \"graph\" : \"" << P.getArgument(0) << "\"," << std::endl;
+    std::cout << "  \"query_cutoff\" : " << query_cutoff << "," << std::endl;
+    std::cout << "  \"time\" : " << std::setprecision(10) << rt << ","
+              << std::endl;
+    std::cout << "  \"max_query_length\" : " << max_query_length << ","
+              << std::endl;
+    std::cout << "  \"total_work\" : " << total_work << "," << std::endl;
+    std::cout << "  \"fraction_covered\" : " << fraction_covered << std::endl;
+    std::cout << "}" << std::endl;
 }
 
-template <class Graph>
-double MaximalMatching_runner(Graph& G, commandLine P) {
-  size_t query_cutoff = P.getOptionLongValue("-query_cutoff", std::numeric_limits<size_t>::max());
-  std::cout << "### Application: Maximal Matching (Yoshida). Status=Experimental" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: -query_cutoff = " << query_cutoff << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+template <class Graph> double MaximalMatching_runner(Graph &G, commandLine P) {
+    size_t query_cutoff = P.getOptionLongValue(
+        "-query_cutoff", std::numeric_limits<size_t>::max());
+    std::cout
+        << "### Application: Maximal Matching (Yoshida). Status=Experimental"
+        << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: -query_cutoff = " << query_cutoff << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  assert(P.getOption("-s"));  // input graph must be symmetric
-  timer t; t.start();
-  auto [max_query_length, total_work, fraction_covered] = MaximalMatching(G, query_cutoff);
-  double tt = t.stop();
-  std::cout << "### Running Time: " << tt << std::endl;
-  print_stats(P, query_cutoff, max_query_length, total_work, fraction_covered, tt);
-  return tt;
+    assert(P.getOption("-s")); // input graph must be symmetric
+    timer t;
+    t.start();
+    auto [max_query_length, total_work, fraction_covered] =
+        MaximalMatching(G, query_cutoff);
+    double tt = t.stop();
+    std::cout << "### Running Time: " << tt << std::endl;
+    print_stats(P, query_cutoff, max_query_length, total_work, fraction_covered,
+                tt);
+    return tt;
 }
 
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_symmetric_main(gbbs::MaximalMatching_runner, false);

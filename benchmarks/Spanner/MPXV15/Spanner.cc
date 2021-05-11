@@ -38,28 +38,29 @@
 
 namespace gbbs {
 // Beta should be set to log n/2k. See Corollary 3.1 and Lemma 3.2 in MPVX'15.
-template <class Graph>
-double Spanner_runner(Graph& G, commandLine P) {
-  size_t n = G.n;
-  size_t k = P.getOptionLongValue("-k", 4);
-  double beta = log(n)/(2*k);
-  std::cout << "### Application: Spanner (O(k)-spanner from MPXV)" << std::endl;
-  std::cout << "### Graph: " << P.getArgument(0) << std::endl;
-  std::cout << "### Threads: " << num_workers() << std::endl;
-  std::cout << "### n: " << G.n << std::endl;
-  std::cout << "### m: " << G.m << std::endl;
-  std::cout << "### Params: -k = " << k << " => \\beta = \\log n/2k = " << beta << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
+template <class Graph> double Spanner_runner(Graph &G, commandLine P) {
+    size_t n = G.n;
+    size_t k = P.getOptionLongValue("-k", 4);
+    double beta = log(n) / (2 * k);
+    std::cout << "### Application: Spanner (O(k)-spanner from MPXV)"
+              << std::endl;
+    std::cout << "### Graph: " << P.getArgument(0) << std::endl;
+    std::cout << "### Threads: " << num_workers() << std::endl;
+    std::cout << "### n: " << G.n << std::endl;
+    std::cout << "### m: " << G.m << std::endl;
+    std::cout << "### Params: -k = " << k
+              << " => \\beta = \\log n/2k = " << beta << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
 
-  assert(P.getOption("-s"));
-  timer t;
-  t.start();
-  auto spanner = spanner::Spanner(G, beta);
-  double tt = t.stop();
-  std::cout << "### Running Time: " << tt << std::endl;
-  std::cout << "### ------------------------------------" << std::endl;
-  return tt;
+    assert(P.getOption("-s"));
+    timer t;
+    t.start();
+    auto spanner = spanner::Spanner(G, beta);
+    double tt = t.stop();
+    std::cout << "### Running Time: " << tt << std::endl;
+    std::cout << "### ------------------------------------" << std::endl;
+    return tt;
 }
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_main(gbbs::Spanner_runner, false);

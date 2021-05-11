@@ -22,39 +22,40 @@
 
 namespace gbbs {
 // Executes SCAN on the input graph and reports stats on the execution.
-template <class Graph>
-double RunScan(Graph& graph, commandLine parameters) {
-  const size_t cluster_rounds{
-    parameters.getOptionLongValue("-cluster-rounds", 1)};
-  const uint64_t mu{parameters.getOptionLongValue("-mu", 5)};
-  const float epsilon{
-    static_cast<float>(parameters.getOptionDoubleValue("-epsilon", 0.6))};
-  std::cout << "Scan parameters: mu = " << mu << ", epsilon = " << epsilon
-    << '\n';
+template <class Graph> double RunScan(Graph &graph, commandLine parameters) {
+    const size_t cluster_rounds{
+        parameters.getOptionLongValue("-cluster-rounds", 1)};
+    const uint64_t mu{parameters.getOptionLongValue("-mu", 5)};
+    const float epsilon{
+        static_cast<float>(parameters.getOptionDoubleValue("-epsilon", 0.6))};
+    std::cout << "Scan parameters: mu = " << mu << ", epsilon = " << epsilon
+              << '\n';
 
-  timer index_construction_timer{"Index construction time"};
-  const indexed_scan::Index scan_index{&graph, scan::CosineSimilarity{}};
-  index_construction_timer.stop();
+    timer index_construction_timer{"Index construction time"};
+    const indexed_scan::Index scan_index{&graph, scan::CosineSimilarity{}};
+    index_construction_timer.stop();
 
-  timer cluster_timer{
-    "Clustering time over " + std::to_string(cluster_rounds) + " rounds"};
-  for (size_t i = 0; i < cluster_rounds; i++) {
-    cluster_timer.start();
-    const indexed_scan::Clustering clustering{scan_index.Cluster(mu, epsilon)};
-    cluster_timer.stop();
-    std::cout << "Modularity: " << scan::Modularity(&graph, clustering) << '\n';
-  }
+    timer cluster_timer{"Clustering time over " +
+                        std::to_string(cluster_rounds) + " rounds"};
+    for (size_t i = 0; i < cluster_rounds; i++) {
+        cluster_timer.start();
+        const indexed_scan::Clustering clustering{
+            scan_index.Cluster(mu, epsilon)};
+        cluster_timer.stop();
+        std::cout << "Modularity: " << scan::Modularity(&graph, clustering)
+                  << '\n';
+    }
 
-  index_construction_timer.reportTotal("");
-  cluster_timer.reportTotal("");
-  const double running_time{
-    index_construction_timer.get_total() + cluster_timer.get_total()};
-  std::cout << "Total SCAN running time: " << running_time << '\n';
-  return running_time;
+    index_construction_timer.reportTotal("");
+    cluster_timer.reportTotal("");
+    const double running_time{index_construction_timer.get_total() +
+                              cluster_timer.get_total()};
+    std::cout << "Total SCAN running time: " << running_time << '\n';
+    return running_time;
 }
 
 static constexpr bool kMutatesGraph{false};
 
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_symmetric_main(gbbs::RunScan, gbbs::kMutatesGraph);

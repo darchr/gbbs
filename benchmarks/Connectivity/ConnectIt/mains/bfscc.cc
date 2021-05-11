@@ -21,11 +21,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "benchmarks/Connectivity/ConnectIt/framework.h"
-#include "benchmarks/Connectivity/WorkEfficientSDB14/Connectivity.h"
 #include "benchmarks/Connectivity/BFSCC/Connectivity.h"
-#include "benchmarks/Connectivity/common.h"
+#include "benchmarks/Connectivity/ConnectIt/framework.h"
 #include "benchmarks/Connectivity/LabelPropagation/Connectivity.h"
+#include "benchmarks/Connectivity/WorkEfficientSDB14/Connectivity.h"
+#include "benchmarks/Connectivity/common.h"
 
 #include "bench_utils.h"
 
@@ -33,37 +33,34 @@ namespace gbbs {
 namespace connectit {
 
 template <class Graph>
-double t_bfs_cc(Graph& G, commandLine P, pbbs::sequence<parent>& correct) {
-  time(t, auto CC = bfs_cc::CC(G));
-  if (P.getOptionValue("-check")) {
-    cc_check(correct, CC);
-  }
-  return t;
+double t_bfs_cc(Graph &G, commandLine P, pbbs::sequence<parent> &correct) {
+    time(t, auto CC = bfs_cc::CC(G));
+    if (P.getOptionValue("-check")) {
+        cc_check(correct, CC);
+    }
+    return t;
 }
 
 template <class Graph>
-void bfscc_nosample(Graph& G, int rounds, commandLine& P, pbbs::sequence<parent>& correct) {
-  run_multiple(G, rounds, correct, "bfs_cc", P, t_bfs_cc<Graph>);
+void bfscc_nosample(Graph &G, int rounds, commandLine &P,
+                    pbbs::sequence<parent> &correct) {
+    run_multiple(G, rounds, correct, "bfs_cc", P, t_bfs_cc<Graph>);
 }
 
+} // namespace connectit
+
+template <class Graph> double Benchmark_runner(Graph &G, commandLine P) {
+    int rounds = P.getOptionIntValue("-r", 5);
+
+    auto correct = pbbs::sequence<parent>();
+    if (P.getOptionValue("-check")) {
+        correct = workefficient_cc::CC(G, 0.2, false, true);
+        RelabelDet(correct);
+    }
+    run_tests(G, rounds, P, correct, connectit::bfscc_nosample<Graph>,
+              {connectit::bfscc_nosample<Graph>});
+    return 1.0;
 }
-
-
-template <class Graph>
-double Benchmark_runner(Graph& G, commandLine P) {
-  int rounds = P.getOptionIntValue("-r", 5);
-
-  auto correct = pbbs::sequence<parent>();
-  if (P.getOptionValue("-check")) {
-    correct = workefficient_cc::CC(G, 0.2, false, true);
-    RelabelDet(correct);
-  }
-  run_tests(G, rounds, P, correct, connectit::bfscc_nosample<Graph>,
-    {
-      connectit::bfscc_nosample<Graph>
-    });
-  return 1.0;
-}
-}  // namespace gbbs
+} // namespace gbbs
 
 generate_symmetric_once_main(gbbs::Benchmark_runner, false);

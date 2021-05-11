@@ -22,42 +22,42 @@
 
 #pragma once
 
-#include <stdlib.h>
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <stdlib.h>
 #include <string>
 
 namespace gbbs {
 
 struct commandLine {
-  int argc;
-  char** argv;
-  std::string comLine;
+    int argc;
+    char **argv;
+    std::string comLine;
 
-  commandLine(int _c, char** _v, std::string _cl);
-  commandLine(int _c, char** _v);
+    commandLine(int _c, char **_v, std::string _cl);
+    commandLine(int _c, char **_v);
 
-  void badArgument() const;
+    void badArgument() const;
 
-  // get an argument
-  // i is indexed from the last argument = 0, second to last indexed 1, ..
-  char* getArgument(int i) const;
+    // get an argument
+    // i is indexed from the last argument = 0, second to last indexed 1, ..
+    char *getArgument(int i) const;
 
-  // looks for two filenames
-  std::pair<char*, char*> IOFileNames() const;
+    // looks for two filenames
+    std::pair<char *, char *> IOFileNames() const;
 
-  std::pair<int, char*> sizeAndFileName() const;
+    std::pair<int, char *> sizeAndFileName() const;
 
-  bool getOption(const std::string& option) const;
-  char* getOptionValue(const std::string& option) const;
-  std::string getOptionValue(
-      const std::string& option, const std::string& defaultValue) const;
-  int getOptionIntValue(const std::string& option, int defaultValue) const;
-  size_t
-  getOptionLongValue(const std::string& option, size_t defaultValue) const;
-  double
-  getOptionDoubleValue(const std::string& option, double defaultValue) const;
+    bool getOption(const std::string &option) const;
+    char *getOptionValue(const std::string &option) const;
+    std::string getOptionValue(const std::string &option,
+                               const std::string &defaultValue) const;
+    int getOptionIntValue(const std::string &option, int defaultValue) const;
+    size_t getOptionLongValue(const std::string &option,
+                              size_t defaultValue) const;
+    double getOptionDoubleValue(const std::string &option,
+                                double defaultValue) const;
 };
 
-}  // namespace gbbs
+} // namespace gbbs
