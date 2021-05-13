@@ -54,7 +54,7 @@ template <class W> struct BFS_F {
 template <template <class W> class vertex, class W>
 inline sequence<uintE> BFS(symmetric_graph<vertex, W> &G, uintE src) {
 #ifdef ACCESS_OBSERVER
-        annotation << "BEGIN: BFS() Init,GraphAddress="
+        annotation << "BEGIN: Kernel() Init,GraphAddress="
                    << &G
                    << ",GraphSize="
                    << sizeof(G)
@@ -120,7 +120,7 @@ inline sequence<uintE> BFS(symmetric_graph<vertex, W> &G, uintE src) {
     Frontier.del();
     std::cout << "Reachable: " << reachable << "\n";
 #ifdef ACCESS_OBSERVER
-    annotation << "END: BFS()";
+    annotation << "END: Kernel() Cleanup";
     access_observer.write(
         annotation.str()
     );

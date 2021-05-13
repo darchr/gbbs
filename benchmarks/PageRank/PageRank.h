@@ -83,7 +83,7 @@ struct PR_Vertex_Reset {
 template <template <class W> class vertex, class W>
 void PageRank_edgeMap(symmetric_graph<vertex, W> &G, double eps = 0.000001, size_t max_iters = 100) {
 #ifdef ACCESS_OBSERVER
-    annotation << "BEGIN: PageRank() Init,GraphAddress="
+    annotation << "BEGIN: Kernel() Init,GraphAddress="
                << &G
                << ",GraphSize="
                << sizeof(G)
@@ -191,7 +191,7 @@ void PageRank_edgeMap(symmetric_graph<vertex, W> &G, double eps = 0.000001, size
         std::cout << p_next[i] << std::endl;
     }
 #ifdef ACCESS_OBSERVER
-    annotation << "END: PageRank() Cleanup";
+    annotation << "END: Kernel() Cleanup";
     access_observer.write(
         annotation.str()
     );
