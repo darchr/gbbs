@@ -30,7 +30,7 @@ struct observer {
     size_t MB = 1024 * 1024;
 
     observer(std::string _file) {
-        file.open(_file);
+        file.open(ANNOTATIONS_PATH + _file);
 #ifdef USE_PCM_LIB
         set_initial_state();
 #endif
